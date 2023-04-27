@@ -1,0 +1,47 @@
+@charset "utf-8";
+
+@import 'node_modules/bulma/sass/utilities/initial-variables';
+
+// Import a Google Font
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,700');
+
+// Update Bulma's global variables
+$family-sans-serif: 'Poppins', sans-serif;
+$primary: #ff4c31;
+
+// Update some of Bulma's component variables
+$control-border-width: 2px;
+$input-border-color: $grey-darker;
+$input-hover-border-color: $grey-darker;
+$input-placeholder-color: $grey;
+$input-focus-border-color: 'none';
+$input-focus-color: 'none';
+$input-focus-box-shadow-size: 0px;
+$input-focus-box-shadow-color: 'none';
+$modal-background-background-color: 'transparent';
+
+// Import the rest of Bulma
+@import 'node_modules/bulma/bulma';
+
+.loader-wrapper {
+  transition: opacity 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  .loader {
+    height: 80px;
+    width: 80px;
+  }
+
+  &.is-active {
+    opacity: 1;
+    z-index: 1;
+  }
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
