@@ -75,3 +75,11 @@ export enum TDEXTradeType {
   BUY = 0,
   SELL = 1,
 }
+
+export interface TDEXTradePreview {
+  market: TDEXMarket
+  type: TDEXTradeType
+  amount?: string
+  asset?: string
+  feeAsset?: string
+}

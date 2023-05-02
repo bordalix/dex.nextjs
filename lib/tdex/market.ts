@@ -1,5 +1,4 @@
 import Decimal from 'decimal.js'
-import { NetworkNames } from './constants'
 import {
   CoinPair,
   TDEXMarket,
@@ -10,55 +9,16 @@ import {
   isTDEXMarket,
   isTDEXMarketBalance,
   isTDEXMarketPrice,
-  isTDEXProvider,
-} from './types'
+} from '../types'
 import axios from 'axios'
-import { toSatoshis } from './utils'
-
-/**
- * Get tdex registry url based on network selected on Marina
- * @param network network name
- * @returns url
- */
-export function getRegistryURL(network: NetworkNames): string {
-  const Registries = {
-    [NetworkNames.MAINNET]:
-      'https://raw.githubusercontent.com/tdex-network/tdex-registry/master/registry.json',
-    [NetworkNames.TESTNET]:
-      'https://raw.githubusercontent.com/tdex-network/tdex-registry/testnet/registry.json',
-  }
-  return Registries[network] || Registries[NetworkNames.MAINNET]
-}
-
-/**
- * Get a list of registered providers from TDEX_REGISTRY_URL
- * @param network network name
- * @returns a list of providers
- */
-export async function getProvidersFromRegistry(
-  network: NetworkNames = NetworkNames.MAINNET,
-): Promise<TDEXProvider[]> {
-  // TODO: remove this after registry is updated
-  if (network === NetworkNames.TESTNET) {
-    return [
-      {
-        name: 'v1.provider.tdex.network',
-        endpoint: 'https://v1.provider.tdex.network',
-      },
-    ]
-  }
-  // end of TODO
-  const res = (await axios.get(getRegistryURL(network))).data
-  if (!Array.isArray(res)) throw new Error('Invalid registry response')
-  return res.filter(isTDEXProvider)
-}
+import { toSatoshis } from '../utils'
 
 /**
  * Get a list of markets from a given provider
  * @param provider
  * @returns an array of markets
  */
-export async function getMarketsFromProvider(
+export async function fetchMarketsFromProvider(
   provider: TDEXProvider,
 ): Promise<TDEXMarket[]> {
   const url = provider.endpoint + '/v2/markets'
@@ -95,7 +55,7 @@ export async function getMarketPrice(
  * @param market
  * @returns an array of markets
  */
-export async function getMarketBalance(
+export async function fetchMarketBalance(
   market: TDEXMarket,
 ): Promise<TDEXMarketBalance | undefined> {
   const url = market.provider.endpoint + '/v2/market/balance'

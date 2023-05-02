@@ -8,11 +8,11 @@ import {
 import { WalletContext } from './wallet'
 import { TDEXMarket, isTDEXMarket } from 'lib/types'
 import {
-  getMarketsFromProvider,
-  getProvidersFromRegistry,
-  getMarketBalance,
+  fetchMarketsFromProvider,
+  fetchMarketBalance,
   getMarketPrice,
-} from 'lib/tdex'
+} from 'lib/tdex/market'
+import { getProvidersFromRegistry } from 'lib/tdex/registry'
 
 interface TradeContextProps {
   loading: boolean
@@ -40,10 +40,10 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
       setLoading(true)
       const markets: TDEXMarket[] = []
       for (const provider of await getProvidersFromRegistry(network)) {
-        for (let market of await getMarketsFromProvider(provider)) {
+        for (let market of await fetchMarketsFromProvider(provider)) {
           markets.push({
             ...market,
-            balance: await getMarketBalance(market),
+            balance: await fetchMarketBalance(market),
             price: await getMarketPrice(market),
           })
         }

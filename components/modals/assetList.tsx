@@ -27,17 +27,21 @@ const AssetListModal = ({
 
   return (
     <Modal id={ModalIds.AssetsList}>
-      <h1 className="title has-text-white">Select an asset</h1>
-      {assets(network).map((a, i) => (
-        <div
-          className="is-flex is-align-items-center my-4"
-          onClick={() => handleClick(a)}
-          key={i}
-        >
-          <Image src={a.iconSrc} alt="coin logo" height={32} width={32} />
-          <p className="subtitle has-text-white ml-4">{a.name}</p>
+      <div className="columns">
+        <div className="column is-half is-offset-one-quarter">
+          <h1 className="title has-text-white">Select an asset</h1>
+          {assets(network).map((a, i) => (
+            <div
+              className="is-flex is-align-items-center my-4"
+              onClick={() => handleClick(a)}
+              key={i}
+            >
+              <Image src={a.iconSrc} alt="coin logo" height={32} width={32} />
+              <p className="subtitle has-text-white ml-4">{a.name}</p>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </Modal>
   )
 }

@@ -8,7 +8,8 @@ const closeModals = () => {
 }
 
 export enum ModalIds {
-  AssetsList = 'assets-list',
+  AssetsList = 'assets-list-modal',
+  Trade = 'trade-modal',
 }
 
 interface ModalProps {
@@ -26,15 +27,8 @@ const Modal = ({ children, id, reset }: ModalProps) => {
     <div className="modal" id={id}>
       <div onClick={handleClick} className="modal-background" />
       <div className="modal-content box has-background-black">
-        <div className="columns">
-          <div className="column is-half is-offset-one-quarter">{children}</div>
-        </div>
+        <div style={{ minHeight: '25rem' }}>{children}</div>
       </div>
-      <button
-        onClick={handleClick}
-        className="modal-close is-large"
-        aria-label="close"
-      />
     </div>
   )
 }

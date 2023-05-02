@@ -1,4 +1,3 @@
-import { assets } from '../../lib/coins'
 import CoinInput from './input'
 import { useContext, useEffect, useState } from 'react'
 import { Coin, CoinPair, TDEXMarket, TDEXTradeType } from '../../lib/types'
@@ -6,13 +5,22 @@ import Arrow from './arrow'
 import TradeButton from './button'
 import { TradeButtonStatus } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
-import { openModal } from 'lib/utils'
+import { openModal, sleep, toSatoshis } from 'lib/utils'
 import Decimal from 'decimal.js'
 import { TradeContext } from 'providers/tdex'
 import AssetListModal from 'components/modals/assetList'
 import { ModalIds } from 'components/modals/modal'
-import { enoughBalanceOnMarket, getBestMarket, getTradeType } from 'lib/tdex'
+import {
+  enoughBalanceOnMarket,
+  getBestMarket,
+  getTradeType,
+} from 'lib/tdex/market'
 import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
+import TradeModal from 'components/modals/trade'
+import { TradeStatus } from 'lib/constants'
+import { getCoins } from 'lib/marina'
+import { selectCoins } from 'lib/coinSelection'
+import { fetchTradePreview } from 'lib/tdex/trade'
 
 export default function Trade() {
   const { connected, enoughBalanceOnMarina, network } =
@@ -22,6 +30,9 @@ export default function Trade() {
   const [errorPreview, setErrorPreview] = useState(false)
   const [market, setMarket] = useState<TDEXMarket>()
   const [side, setSide] = useState('from')
+  const [tradeError, setTradeError] = useState<string>()
+  const [tradeStatus, setTradeStatus] = useState(TradeStatus.WAITING)
+  const [txid, setTxid] = useState<string>()
 
   // default pair
   const [pair, setPair] = useState<CoinPair>({
@@ -124,10 +135,33 @@ export default function Trade() {
     openModal(ModalIds.AssetsList)
   }
 
-  const onTrade = () => console.log('pair', pair)
+  const onTrade = async () => {
+    try {
+      const { amount, assetHash, precision } = pair.from
+      const amountToSend = toSatoshis(amount, precision)
+      console.log(
+        'coins',
+        selectCoins(await getCoins(), assetHash, amountToSend),
+      )
+      if (market)
+        fetchTradePreview(
+          market,
+          pair,
+          getTradeType(market, pair),
+          toSatoshis(pair.from.amount).toString(),
+        )
+      openModal(ModalIds.Trade)
+      await sleep(2000)
+      setTradeStatus(TradeStatus.COMPLETED)
+    } catch (e) {
+      console.error(e)
+      setTradeStatus(TradeStatus.ERROR)
+      setTradeError((e as Error).message)
+    }
+  }
 
   // manage button status and message
-  const tradeStatus = !connected
+  const tradeButtonStatus = !connected
     ? TradeButtonStatus.ConnectWallet
     : !market
     ? TradeButtonStatus.InvalidPair
@@ -162,7 +196,7 @@ export default function Trade() {
               <TradeButton
                 loading={loading}
                 onClick={onTrade}
-                status={tradeStatus}
+                status={tradeButtonStatus}
               />
             </form>
             {network && <p className="is-size-7">Network: {network}</p>}
@@ -180,6 +214,12 @@ export default function Trade() {
           setDestAsset={setDestAsset}
           setFromAsset={setFromAsset}
           side={side}
+        />
+        <TradeModal
+          error={tradeError}
+          pair={pair}
+          status={tradeStatus}
+          txid={txid}
         />
       </div>
     </div>
