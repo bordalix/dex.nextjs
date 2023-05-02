@@ -53,6 +53,7 @@ export default function Trade() {
     })
   }
 
+  // called to change dest asset, puts from amount undefined
   const setDestAsset = (asset: Coin) => {
     setPair({
       dest: asset,
@@ -60,6 +61,7 @@ export default function Trade() {
     })
   }
 
+  // called to change from asset, puts dest amount undefined
   const setFromAsset = (asset: Coin) => {
     setPair({
       dest: { ...pair.dest, amount: undefined },
@@ -67,6 +69,8 @@ export default function Trade() {
     })
   }
 
+  // called to set dest amount
+  // calculates from amount and updates
   const setDestAmount = (amount: string) => {
     if (amount.match(/\.$/)) return
     if (!market || !market.price?.spotPrice) return
@@ -77,6 +81,7 @@ export default function Trade() {
         from: { ...pair.from, amount: undefined },
       })
     } else {
+      if (isNaN(Number(amount))) return // avoid showing NaN on inputs
       const destAmount = Number(amount)
       const fromAmount =
         getTradeType(market, pair) === TDEXTradeType.SELL
@@ -89,6 +94,8 @@ export default function Trade() {
     }
   }
 
+  // called to set from amount
+  // calculates dest amount and updates
   const setFromAmount = (amount: string) => {
     if (amount.match(/\.$/)) return
     if (!market || !market.price?.spotPrice) return
@@ -99,6 +106,7 @@ export default function Trade() {
         from: { ...pair.from, amount: undefined },
       })
     } else {
+      if (isNaN(Number(amount))) return // avoid showing NaN on inputs
       const fromAmount = Number(amount)
       const destAmount =
         getTradeType(market, pair) === TDEXTradeType.SELL
@@ -157,7 +165,15 @@ export default function Trade() {
                 status={tradeStatus}
               />
             </form>
-            <p className="has-text-centered is-size-7">Network: {network}</p>
+            {network && <p className="is-size-7">Network: {network}</p>}
+            {market && (
+              <p className="is-size-7">
+                Provider:{' '}
+                <a href={market.provider.endpoint}>
+                  {market.provider.endpoint}
+                </a>
+              </p>
+            )}
           </div>
         </div>
         <AssetListModal
