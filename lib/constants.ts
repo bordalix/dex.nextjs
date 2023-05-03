@@ -9,8 +9,8 @@ export const enum TradeButtonStatus {
   InvalidPair = 'Pair not supported',
   ConnectWallet = 'Connect wallet',
   ErrorPreview = 'Preview not available',
-  NoMarinaBalance = 'Not enough balance on Marina',
-  NoMarketBalance = 'Not enough balance on Market',
+  InsufficientMarinaBalance = 'Insufficient balance on Marina',
+  InsufficientMarketBalance = 'Insufficient balance on Market',
 }
 
 export const enum TradeStatus {

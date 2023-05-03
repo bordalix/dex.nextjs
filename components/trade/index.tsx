@@ -27,6 +27,8 @@ export default function Trade() {
     useContext(WalletContext)
   const { loading, markets } = useContext(TradeContext)
 
+  const [marketBalanceError, setMarketBalanceError] = useState(false)
+  const [marinaBalanceError, setMarinaBalanceError] = useState(false)
   const [errorPreview, setErrorPreview] = useState(false)
   const [market, setMarket] = useState<TDEXMarket>()
   const [side, setSide] = useState('from')
@@ -55,6 +57,17 @@ export default function Trade() {
   useEffect(() => {
     setMarket(getBestMarket(markets, pair))
   }, [markets, pair])
+
+  // update balance errors
+  useEffect(() => {
+    if (market) {
+      const { amount, assetHash, precision } = pair.from
+      const sats = toSatoshis(amount, precision)
+      setMarinaBalanceError(!enoughBalanceOnMarina(assetHash, sats))
+      setMarketBalanceError(!enoughBalanceOnMarket(market, pair))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [market, pair])
 
   // invert pairs on arrow click
   const invertPair = () => {
@@ -137,19 +150,41 @@ export default function Trade() {
 
   const onTrade = async () => {
     try {
+      if (!market) return
       const { amount, assetHash, precision } = pair.from
-      const amountToSend = toSatoshis(amount, precision)
-      console.log(
-        'coins',
-        selectCoins(await getCoins(), assetHash, amountToSend),
-      )
-      if (market)
-        fetchTradePreview(
+
+      // fecth a preview of this trade
+      let preview
+      try {
+        preview = await fetchTradePreview(
+          toSatoshis(amount, precision).toString(),
           market,
           pair,
           getTradeType(market, pair),
-          toSatoshis(pair.from.amount).toString(),
         )
+      } catch {
+        setErrorPreview(true)
+      }
+      if (!preview?.[0]) {
+        setErrorPreview(true)
+        return
+      }
+
+      // calculate total amount to send
+      const amountToSend = Decimal.add(
+        Number(preview[0].amount),
+        Number(preview[0].feeAmount),
+      ).toNumber()
+
+      if (!enoughBalanceOnMarina(assetHash, amountToSend)) {
+        setMarinaBalanceError(true)
+        return
+      }
+
+      // select utxos for trade
+      const utxos = selectCoins(await getCoins(), assetHash, amountToSend)
+      console.log('utxos', utxos)
+
       openModal(ModalIds.Trade)
       await sleep(2000)
       setTradeStatus(TradeStatus.COMPLETED)
@@ -167,10 +202,10 @@ export default function Trade() {
     ? TradeButtonStatus.InvalidPair
     : errorPreview
     ? TradeButtonStatus.ErrorPreview
-    : !enoughBalanceOnMarket(market, pair)
-    ? `Not enough ${pair.dest.ticker} on Market`
-    : !enoughBalanceOnMarina(pair.from)
-    ? `Not enough ${pair.from.ticker} on Marina`
+    : marinaBalanceError
+    ? TradeButtonStatus.InsufficientMarinaBalance
+    : marketBalanceError
+    ? TradeButtonStatus.InsufficientMarketBalance
     : !pair.from.amount
     ? TradeButtonStatus.EnterAmount
     : TradeButtonStatus.Trade

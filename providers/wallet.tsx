@@ -8,7 +8,7 @@ import { defaultNetwork } from 'lib/defaults'
 
 interface WalletContextProps {
   connected: boolean
-  enoughBalanceOnMarina: (arg0: Coin) => boolean
+  enoughBalanceOnMarina: (hash: string, amount?: number) => boolean
   marina: MarinaProvider | undefined
   network: NetworkNames
   setConnected: (arg0: boolean) => void
@@ -98,13 +98,10 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
     }
   }, [connected, marina, network])
 
-  // checks if there's enough balance for base/from asset
-  const enoughBalanceOnMarina = (coin: Coin) => {
-    const balance = balances.find(
-      ({ asset }) => asset.assetHash === coin.assetHash,
-    )
-    if (!balance) return false
-    return balance.amount >= toSatoshis(coin.amount)
+  // checks if there's enough balance for an asset
+  const enoughBalanceOnMarina = (hash: string, amount = 0): boolean => {
+    const balance = balances.find(({ asset }) => asset.assetHash === hash)
+    return Boolean(balance && balance.amount >= amount)
   }
 
   return (
