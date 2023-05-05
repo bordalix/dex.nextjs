@@ -1,6 +1,6 @@
 import CoinInput from './input'
 import { useContext, useEffect, useState } from 'react'
-import { Coin, CoinPair, TDEXMarket, TDEXTradeType } from '../../lib/types'
+import { Coin, CoinPair, TDEXMarket } from '../../lib/types'
 import Arrow from './arrow'
 import TradeButton from './button'
 import { TradeButtonStatus } from 'lib/constants'
@@ -20,12 +20,10 @@ import { fetchTradePreview } from 'lib/tdex/trade'
 import { showToast } from 'lib/toast'
 
 export default function Trade() {
-  const { connected, enoughBalanceOnMarina, network } =
-    useContext(WalletContext)
+  const { connected, enoughBalance, network } = useContext(WalletContext)
   const { loading, markets } = useContext(TradeContext)
 
-  const [marketBalanceError, setMarketBalanceError] = useState(false)
-  const [marinaBalanceError, setMarinaBalanceError] = useState(false)
+  const [balanceError, setBalanceError] = useState(false)
   const [errorPreview, setErrorPreview] = useState(false)
   const [market, setMarket] = useState<TDEXMarket>()
   const [side, setSide] = useState('from')
@@ -59,9 +57,8 @@ export default function Trade() {
   // update balance errors
   useEffect(() => {
     if (market) {
-      const { amount, assetHash, precision } = pair.from
-      const sats = toSatoshis(amount, precision)
-      setMarinaBalanceError(!enoughBalanceOnMarina(assetHash, sats))
+      const { amount, assetHash } = pair.from
+      setBalanceError(!enoughBalance(assetHash, amount))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, pair])
@@ -90,70 +87,61 @@ export default function Trade() {
     })
   }
 
-  const setDestAmount = async (destAmount?: number) => {
-    if (!market) return
-    if (!destAmount) {
-      setPair({
-        dest: { ...pair.dest, amount: destAmount },
-        from: { ...pair.from, amount: destAmount },
-      })
-    } else {
-      const preview = await fetchTradePreview(
-        destAmount,
-        market,
-        pair,
-        pair.dest,
-      )
-      console.log('preview', preview[0])
-      const { amount, feeAmount } = preview[0]
+  // change amount for a given coin
+  // makes a trade preview to find the amount of the other coin
+  const setAmount = async (which: string, amount?: number) => {
+    try {
+      if (!market) return
+      if (!amount) {
+        setPair({
+          dest: { ...pair.dest, amount },
+          from: { ...pair.from, amount },
+        })
+      } else {
+        const coin = which === 'dest' ? pair.dest : pair.from
+        const preview = await fetchTradePreview({
+          amount,
+          coin,
+          market,
+          pair,
+        })
+        if (!preview?.[0]) throw 'unknown preview error'
 
-      const fromAmount = Decimal.add(
-        Number(amount),
-        Number(feeAmount),
-      ).toNumber()
+        const otherAmount =
+          which === 'dest'
+            ? Decimal.add(
+                Number(preview[0].amount),
+                Number(preview[0].feeAmount),
+              ).toNumber()
+            : Decimal.sub(
+                Number(preview[0].amount),
+                Number(preview[0].feeAmount),
+              ).toNumber()
 
-      console.log('fromAmount', fromAmount)
-      console.log('destAmount', destAmount)
-
-      setPair({
-        dest: { ...pair.dest, amount: destAmount },
-        from: { ...pair.from, amount: fromAmount },
-      })
+        setPair(
+          which === 'dest'
+            ? {
+                dest: { ...pair.dest, amount },
+                from: { ...pair.from, amount: otherAmount },
+              }
+            : {
+                dest: { ...pair.dest, amount: otherAmount },
+                from: { ...pair.from, amount },
+              },
+        )
+      }
+    } catch (err) {
+      showToast(err)
     }
   }
 
-  const setFromAmount = async (fromAmount?: number) => {
-    if (!market) return
-    if (!fromAmount) {
-      setPair({
-        dest: { ...pair.dest, amount: fromAmount },
-        from: { ...pair.from, amount: fromAmount },
-      })
-    } else {
-      const preview = await fetchTradePreview(
-        fromAmount,
-        market,
-        pair,
-        pair.from,
-      )
-      console.log('preview', preview[0])
-      const { amount, feeAmount } = preview[0]
+  // change amount for buying coin
+  const setDestAmount = async (amount?: number) => setAmount('dest', amount)
 
-      const destAmount = Decimal.sub(
-        Number(amount),
-        Number(feeAmount),
-      ).toNumber()
+  // change amount for selling coin
+  const setFromAmount = async (amount?: number) => setAmount('from', amount)
 
-      console.log('fromAmount', fromAmount)
-      console.log('destAmount', destAmount)
-
-      setPair({
-        dest: { ...pair.dest, amount: destAmount },
-        from: { ...pair.from, amount: fromAmount },
-      })
-    }
-  }
-
+  // open modal to choose assets
   const openAssetsModal = (side: string) => {
     setSide(side)
     openModal(ModalIds.AssetsList)
@@ -163,15 +151,16 @@ export default function Trade() {
     try {
       if (!market) throw 'unknown market error'
 
-      const { amount, assetHash, precision } = pair.from
+      const { amount, assetHash } = pair.from
+      if (!amount) return
 
       // fecth a preview of this trade
-      const preview = await fetchTradePreview(
-        toSatoshis(amount, precision),
+      const preview = await fetchTradePreview({
+        amount,
         market,
         pair,
-        pair.from,
-      )
+        coin: pair.from,
+      })
       if (!preview?.[0]) throw 'unknown preview error'
 
       // calculate total amount to send
@@ -189,7 +178,7 @@ export default function Trade() {
       setTradeStatus(TradeStatus.COMPLETED)
     } catch (err) {
       const errMsg = (err as Error).message
-      showToast(errMsg)
+      showToast(err)
       console.error(err)
       setTradeStatus(TradeStatus.ERROR)
       setTradeError(errMsg)
@@ -203,7 +192,7 @@ export default function Trade() {
     ? TradeButtonStatus.InvalidPair
     : errorPreview
     ? TradeButtonStatus.ErrorPreview
-    : marinaBalanceError
+    : balanceError
     ? TradeButtonStatus.NoBalance
     : !pair.from.amount
     ? TradeButtonStatus.EnterAmount

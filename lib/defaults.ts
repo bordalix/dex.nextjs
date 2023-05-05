@@ -1,4 +1,4 @@
-import { assets } from './coins'
+import { assets } from './assets'
 import { NetworkNames } from './constants'
 
 export const defaultNetwork = NetworkNames.TESTNET

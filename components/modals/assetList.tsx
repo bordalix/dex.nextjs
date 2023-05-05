@@ -2,9 +2,10 @@ import { Coin } from 'lib/types'
 import Modal, { ModalIds } from './modal'
 import Image from 'next/image'
 import { closeModal } from 'lib/utils'
-import { assets } from 'lib/coins'
+import { assets } from 'lib/assets'
 import { WalletContext } from 'providers/wallet'
 import { useContext } from 'react'
+import { TradeContext } from 'providers/trade'
 
 interface AssetListModalProps {
   setDestAsset: (arg0: Coin) => void
@@ -18,6 +19,7 @@ const AssetListModal = ({
   side,
 }: AssetListModalProps) => {
   const { network } = useContext(WalletContext)
+  const { markets } = useContext(TradeContext)
 
   const handleClick = (a: Coin) => {
     closeModal(ModalIds.AssetsList)
@@ -25,12 +27,23 @@ const AssetListModal = ({
     if (side === 'from') setFromAsset(a)
   }
 
+  const assetsOnMarkets = new Set()
+  markets.map((market) => {
+    assetsOnMarkets.add(market.baseAsset)
+    assetsOnMarkets.add(market.quoteAsset)
+  })
+  console.log('assetsOnMarkets', assetsOnMarkets)
+
+  const listOfAssets = assets(network).filter((asset) =>
+    assetsOnMarkets.has(asset.assetHash),
+  )
+
   return (
     <Modal id={ModalIds.AssetsList}>
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select an asset</h1>
-          {assets(network).map((a, i) => (
+          {listOfAssets.map((a, i) => (
             <div
               className="is-flex is-align-items-center my-4"
               onClick={() => handleClick(a)}

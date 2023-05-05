@@ -9,7 +9,6 @@ import {
   isTDEXMarketPrice,
 } from '../types'
 import axios from 'axios'
-import { toSatoshis } from '../utils'
 
 /**
  * Get a list of markets from a given provider

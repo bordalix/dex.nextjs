@@ -3,6 +3,7 @@ import { toast, setDefaults } from 'bulma-toast'
 export function showToast(err: any, options = {}) {
   // try to get a string from the error object
   const message = err.message || err.toString()
+  console.error(message)
 
   // options will be merged with these and the defaults
   // will be used if the fields are not provided.

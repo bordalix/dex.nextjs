@@ -2,13 +2,11 @@ import { Balance, MarinaProvider, NetworkString } from 'marina-provider'
 import { ReactNode, createContext, useEffect, useState } from 'react'
 import { NetworkNames } from '../lib/constants'
 import { getBalances, getMarinaProvider, getNetwork } from '../lib/marina'
-import { toSatoshis } from 'lib/utils'
-import { Coin } from 'lib/types'
 import { defaultNetwork } from 'lib/defaults'
 
 interface WalletContextProps {
   connected: boolean
-  enoughBalanceOnMarina: (hash: string, amount?: number) => boolean
+  enoughBalance: (hash: string, amount?: number) => boolean
   marina: MarinaProvider | undefined
   network: NetworkNames
   setConnected: (arg0: boolean) => void
@@ -16,7 +14,7 @@ interface WalletContextProps {
 
 export const WalletContext = createContext<WalletContextProps>({
   connected: false,
-  enoughBalanceOnMarina: () => false,
+  enoughBalance: () => false,
   marina: undefined,
   network: defaultNetwork,
   setConnected: () => {},
@@ -99,7 +97,7 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   }, [connected, marina, network])
 
   // checks if there's enough balance for an asset
-  const enoughBalanceOnMarina = (hash: string, amount = 0): boolean => {
+  const enoughBalance = (hash: string, amount = 0): boolean => {
     const balance = balances.find(({ asset }) => asset.assetHash === hash)
     return Boolean(balance && balance.amount >= amount)
   }
@@ -108,7 +106,7 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
     <WalletContext.Provider
       value={{
         connected,
-        enoughBalanceOnMarina,
+        enoughBalance,
         marina,
         network: network as NetworkNames,
         setConnected,

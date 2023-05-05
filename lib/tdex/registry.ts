@@ -1,19 +1,6 @@
-import Decimal from 'decimal.js'
 import { NetworkNames } from '../constants'
-import {
-  CoinPair,
-  TDEXMarket,
-  TDEXMarketBalance,
-  TDEXMarketPrice,
-  TDEXProvider,
-  TDEXTradeType,
-  isTDEXMarket,
-  isTDEXMarketBalance,
-  isTDEXMarketPrice,
-  isTDEXProvider,
-} from '../types'
+import { TDEXProvider, isTDEXProvider } from '../types'
 import axios from 'axios'
-import { toSatoshis } from '../utils'
 
 /**
  * Get tdex registry url based on network selected on Marina
