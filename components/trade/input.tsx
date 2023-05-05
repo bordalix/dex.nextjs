@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { Coin } from '../../lib/types'
 import { useEffect, useState } from 'react'
-import { fromSatoshis, prettyNumber, toSatoshis } from 'lib/utils'
+import { fromSatoshis, toSatoshis } from 'lib/utils'
 
 interface CoinInputProps {
   coin: Coin

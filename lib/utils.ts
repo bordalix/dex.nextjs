@@ -50,12 +50,3 @@ export async function sleep(miliseconds: number) {
     }),
   )
 }
-
-// format numbers
-export const prettyNumber = (num = 0, min = 2, max = 8): string => {
-  if (num === 0) return '0'
-  return new Intl.NumberFormat('en-us', {
-    minimumFractionDigits: min,
-    maximumFractionDigits: max,
-  }).format(num)
-}
