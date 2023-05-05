@@ -11,11 +11,11 @@ export default function TradeButton({
   onClick,
   status,
 }: TradeButtonProps) {
-  const btnStyle = 'button is-primary is-medium is-fullwidth is-rounded'
+  const btnStyle = 'button is-primary is-medium is-fullwidth mt-4'
   const disabled = status !== TradeButtonStatus.Trade
   return (
     <button
-      className={btnStyle + (loading && ' is-loading')}
+      className={btnStyle + (loading ? ' is-loading' : '')}
       disabled={disabled}
       onClick={onClick}
       type="button"

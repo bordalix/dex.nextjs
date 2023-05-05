@@ -2,7 +2,7 @@ import 'styles/globals.scss'
 import Head from 'next/head'
 import type { AppProps } from 'next/app'
 import { WalletProvider } from 'providers/wallet'
-import { TradeProvider } from 'providers/tdex'
+import { TradeProvider } from 'providers/trade'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

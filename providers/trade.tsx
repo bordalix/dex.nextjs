@@ -1,6 +1,7 @@
 import {
   ReactNode,
   createContext,
+  memo,
   useContext,
   useEffect,
   useState,
@@ -13,6 +14,7 @@ import {
   getMarketPrice,
 } from 'lib/tdex/market'
 import { getProvidersFromRegistry } from 'lib/tdex/registry'
+import { showToast } from 'lib/toast'
 
 interface TradeContextProps {
   loading: boolean
@@ -37,19 +39,24 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
   // fetch and set markets (needs to fetch providers)
   useEffect(() => {
     const asyncFetchAndSetMarkets = async () => {
-      setLoading(true)
-      const markets: TDEXMarket[] = []
-      for (const provider of await getProvidersFromRegistry(network)) {
-        for (let market of await fetchMarketsFromProvider(provider)) {
-          markets.push({
-            ...market,
-            balance: await fetchMarketBalance(market),
-            price: await getMarketPrice(market),
-          })
+      try {
+        setLoading(true)
+        const markets: TDEXMarket[] = []
+        for (const provider of await getProvidersFromRegistry(network)) {
+          for (let market of await fetchMarketsFromProvider(provider)) {
+            markets.push({
+              ...market,
+              balance: await fetchMarketBalance(market),
+              price: await getMarketPrice(market),
+            })
+          }
         }
+        setMarkets(markets.filter(isTDEXMarket))
+        setLoading(false)
+      } catch (err) {
+        console.error(err)
+        showToast(err)
       }
-      setMarkets(markets.filter(isTDEXMarket))
-      setLoading(false)
     }
     asyncFetchAndSetMarkets()
   }, [network])

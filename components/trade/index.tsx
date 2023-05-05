@@ -7,20 +7,17 @@ import { TradeButtonStatus } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
 import { openModal, sleep, toSatoshis } from 'lib/utils'
 import Decimal from 'decimal.js'
-import { TradeContext } from 'providers/tdex'
+import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
 import { ModalIds } from 'components/modals/modal'
-import {
-  enoughBalanceOnMarket,
-  getBestMarket,
-  getTradeType,
-} from 'lib/tdex/market'
+import { enoughBalanceOnMarket, getBestMarket } from 'lib/tdex/market'
 import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
 import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
 import { getCoins } from 'lib/marina'
 import { selectCoins } from 'lib/coinSelection'
 import { fetchTradePreview } from 'lib/tdex/trade'
+import { showToast } from 'lib/toast'
 
 export default function Trade() {
   const { connected, enoughBalanceOnMarina, network } =
@@ -56,6 +53,7 @@ export default function Trade() {
   // update best market on changes
   useEffect(() => {
     setMarket(getBestMarket(markets, pair))
+    console.log(getBestMarket(markets, pair))
   }, [markets, pair])
 
   // update balance errors
@@ -93,24 +91,31 @@ export default function Trade() {
     })
   }
 
-  // called to set dest amount
-  // calculates from amount and updates
-  const setDestAmount = (amount: string) => {
-    if (amount.match(/\.$/)) return
-    if (!market || !market.price?.spotPrice) return
-    const spotPrice = market.price.spotPrice
-    if (amount === '') {
+  const setDestAmount = async (destAmount?: number) => {
+    if (!market) return
+    if (!destAmount) {
       setPair({
-        dest: { ...pair.dest, amount: undefined },
-        from: { ...pair.from, amount: undefined },
+        dest: { ...pair.dest, amount: destAmount },
+        from: { ...pair.from, amount: destAmount },
       })
     } else {
-      if (isNaN(Number(amount))) return // avoid showing NaN on inputs
-      const destAmount = Number(amount)
-      const fromAmount =
-        getTradeType(market, pair) === TDEXTradeType.SELL
-          ? Decimal.div(destAmount, spotPrice).toNumber()
-          : Decimal.mul(destAmount, spotPrice).toNumber()
+      const preview = await fetchTradePreview(
+        destAmount,
+        market,
+        pair,
+        pair.dest,
+      )
+      console.log('preview', preview[0])
+      const { amount, feeAmount } = preview[0]
+
+      const fromAmount = Decimal.add(
+        Number(amount),
+        Number(feeAmount),
+      ).toNumber()
+
+      console.log('fromAmount', fromAmount)
+      console.log('destAmount', destAmount)
+
       setPair({
         dest: { ...pair.dest, amount: destAmount },
         from: { ...pair.from, amount: fromAmount },
@@ -118,24 +123,31 @@ export default function Trade() {
     }
   }
 
-  // called to set from amount
-  // calculates dest amount and updates
-  const setFromAmount = (amount: string) => {
-    if (amount.match(/\.$/)) return
-    if (!market || !market.price?.spotPrice) return
-    const spotPrice = market.price.spotPrice
-    if (amount === '') {
+  const setFromAmount = async (fromAmount?: number) => {
+    if (!market) return
+    if (!fromAmount) {
       setPair({
-        dest: { ...pair.dest, amount: undefined },
-        from: { ...pair.from, amount: undefined },
+        dest: { ...pair.dest, amount: fromAmount },
+        from: { ...pair.from, amount: fromAmount },
       })
     } else {
-      if (isNaN(Number(amount))) return // avoid showing NaN on inputs
-      const fromAmount = Number(amount)
-      const destAmount =
-        getTradeType(market, pair) === TDEXTradeType.SELL
-          ? Decimal.mul(fromAmount, spotPrice).toNumber()
-          : Decimal.div(fromAmount, spotPrice).toNumber()
+      const preview = await fetchTradePreview(
+        fromAmount,
+        market,
+        pair,
+        pair.from,
+      )
+      console.log('preview', preview[0])
+      const { amount, feeAmount } = preview[0]
+
+      const destAmount = Decimal.sub(
+        Number(amount),
+        Number(feeAmount),
+      ).toNumber()
+
+      console.log('fromAmount', fromAmount)
+      console.log('destAmount', destAmount)
+
       setPair({
         dest: { ...pair.dest, amount: destAmount },
         from: { ...pair.from, amount: fromAmount },
@@ -150,36 +162,24 @@ export default function Trade() {
 
   const onTrade = async () => {
     try {
-      if (!market) return
+      if (!market) throw 'unknown market error'
+
       const { amount, assetHash, precision } = pair.from
 
       // fecth a preview of this trade
-      let preview
-      try {
-        preview = await fetchTradePreview(
-          toSatoshis(amount, precision).toString(),
-          market,
-          pair,
-          getTradeType(market, pair),
-        )
-      } catch {
-        setErrorPreview(true)
-      }
-      if (!preview?.[0]) {
-        setErrorPreview(true)
-        return
-      }
+      const preview = await fetchTradePreview(
+        toSatoshis(amount, precision),
+        market,
+        pair,
+        pair.from,
+      )
+      if (!preview?.[0]) throw 'unknown preview error'
 
       // calculate total amount to send
       const amountToSend = Decimal.add(
         Number(preview[0].amount),
         Number(preview[0].feeAmount),
       ).toNumber()
-
-      if (!enoughBalanceOnMarina(assetHash, amountToSend)) {
-        setMarinaBalanceError(true)
-        return
-      }
 
       // select utxos for trade
       const utxos = selectCoins(await getCoins(), assetHash, amountToSend)
@@ -188,10 +188,12 @@ export default function Trade() {
       openModal(ModalIds.Trade)
       await sleep(2000)
       setTradeStatus(TradeStatus.COMPLETED)
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      const errMsg = (err as Error).message
+      showToast(errMsg)
+      console.error(err)
       setTradeStatus(TradeStatus.ERROR)
-      setTradeError((e as Error).message)
+      setTradeError(errMsg)
     }
   }
 
@@ -216,7 +218,7 @@ export default function Trade() {
         <div className="columns">
           <div className="column is-half is-offset-one-quarter">
             <form className="box has-background-black">
-              <h1 className="title has-text-white">Trade</h1>
+              <h1 className="title has-text-white mb-1">Trade</h1>
               <CoinInput
                 coin={pair.from}
                 openAssetsModal={() => openAssetsModal('from')}

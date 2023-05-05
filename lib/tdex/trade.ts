@@ -1,22 +1,26 @@
 import axios from 'axios'
 import {
+  Coin,
   CoinPair,
   TDEXMarket,
   TDEXTradePreview,
-  TDEXTradeType,
   isTDEXTradePreviewResponse,
 } from 'lib/types'
+import { getTradeType } from './market'
 
 export async function fetchTradePreview(
-  amount = '0',
+  amount = 0,
   market: TDEXMarket,
   pair: CoinPair,
-  type: TDEXTradeType,
+  coin: Coin,
 ) {
+  const { dest, from } = pair
+  const otherCoin = coin.assetHash === from.assetHash ? dest : from
+  const type = getTradeType(market, pair)
   const trade: TDEXTradePreview = {
-    amount,
-    asset: pair.from.assetHash,
-    feeAsset: pair.from.assetHash,
+    amount: amount.toString(),
+    asset: coin.assetHash,
+    feeAsset: otherCoin.assetHash,
     market,
     type,
   }
