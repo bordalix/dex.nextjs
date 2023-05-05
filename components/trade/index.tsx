@@ -10,7 +10,7 @@ import Decimal from 'decimal.js'
 import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
 import { ModalIds } from 'components/modals/modal'
-import { enoughBalanceOnMarket, getBestMarket } from 'lib/tdex/market'
+import { getBestMarket } from 'lib/tdex/market'
 import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
 import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
@@ -62,7 +62,6 @@ export default function Trade() {
       const { amount, assetHash, precision } = pair.from
       const sats = toSatoshis(amount, precision)
       setMarinaBalanceError(!enoughBalanceOnMarina(assetHash, sats))
-      setMarketBalanceError(!enoughBalanceOnMarket(market, pair))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, pair])
@@ -205,9 +204,7 @@ export default function Trade() {
     : errorPreview
     ? TradeButtonStatus.ErrorPreview
     : marinaBalanceError
-    ? TradeButtonStatus.InsufficientMarinaBalance
-    : marketBalanceError
-    ? TradeButtonStatus.InsufficientMarketBalance
+    ? TradeButtonStatus.NoBalance
     : !pair.from.amount
     ? TradeButtonStatus.EnterAmount
     : TradeButtonStatus.Trade

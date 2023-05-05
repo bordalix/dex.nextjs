@@ -2,12 +2,10 @@ import Decimal from 'decimal.js'
 import {
   CoinPair,
   TDEXMarket,
-  TDEXMarketBalance,
   TDEXMarketPrice,
   TDEXProvider,
   TDEXTradeType,
   isTDEXMarket,
-  isTDEXMarketBalance,
   isTDEXMarketPrice,
 } from '../types'
 import axios from 'axios'
@@ -49,20 +47,6 @@ export async function getMarketPrice(
   const res = (await axios.post(url, { market }, opt)).data
   console.log('price', res, market)
   return isTDEXMarketPrice(res) ? res : undefined
-}
-
-/**
- * Get the balance for a given market
- * @param market
- * @returns an array of markets
- */
-export async function fetchMarketBalance(
-  market: TDEXMarket,
-): Promise<TDEXMarketBalance | undefined> {
-  const url = market.provider.endpoint + '/v2/market/balance'
-  const opt = { headers: { 'Content-Type': 'application/json' } }
-  const res = (await axios.post(url, { market }, opt)).data.balance
-  return isTDEXMarketBalance(res) ? res : undefined
 }
 
 /**
@@ -125,27 +109,8 @@ export function getBestMarket(
   if (validMarkets.length === 1) return validMarkets[0]
 
   // if we reach this point, it means we have several matching markets,
-  // so lets filter markets with enough balance
-  const marketsWithEnoughBalance = validMarkets.filter((market) =>
-    getTradeType(market, pair) === TDEXTradeType.SELL
-      ? // buying quote asset, check quote asset market balance
-        Number(market.balance?.quoteAmount) >= toSatoshis(pair.dest.amount)
-      : // buying base asset, check base asset market balance
-        Number(market.balance?.baseAmount) >= toSatoshis(pair.from.amount),
-  )
-
-  // if there's only one market left, return it
-  if (marketsWithEnoughBalance.length === 1) return marketsWithEnoughBalance[0]
-
-  // we want to return a market if there's no market with enough balance
-  const multipleMarkets =
-    marketsWithEnoughBalance.length === 0
-      ? validMarkets
-      : marketsWithEnoughBalance
-
-  // if we reach this point, it means we have several matching markets,
   // so lets find the market with the best spot price
-  const bestMarket = multipleMarkets.reduce((prev, curr) => {
+  const bestMarket = validMarkets.reduce((prev, curr) => {
     const prevSpotPrice = prev.price?.spotPrice ?? 0
     const currSpotPrice = curr.price?.spotPrice ?? 0
     return getTradeType(curr, pair) === TDEXTradeType.SELL
@@ -190,21 +155,4 @@ export function getTradeType(
   return market.baseAsset === pair.from.assetHash
     ? TDEXTradeType.SELL
     : TDEXTradeType.BUY
-}
-
-/**
- * Checks if a market has enough balance for a pair
- * @param market
- * @param pair
- * @returns boolean
- */
-export function enoughBalanceOnMarket(
-  market: TDEXMarket,
-  pair: CoinPair,
-): boolean {
-  return getTradeType(market, pair) === TDEXTradeType.SELL
-    ? // buying quote asset, check quote asset market balance
-      Number(market.balance?.quoteAmount) >= toSatoshis(pair.dest.amount)
-    : // buying base asset, check base asset market balance
-      Number(market.balance?.baseAmount) >= toSatoshis(pair.dest.amount)
 }

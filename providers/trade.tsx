@@ -8,11 +8,7 @@ import {
 } from 'react'
 import { WalletContext } from './wallet'
 import { TDEXMarket, isTDEXMarket } from 'lib/types'
-import {
-  fetchMarketsFromProvider,
-  fetchMarketBalance,
-  getMarketPrice,
-} from 'lib/tdex/market'
+import { fetchMarketsFromProvider, getMarketPrice } from 'lib/tdex/market'
 import { getProvidersFromRegistry } from 'lib/tdex/registry'
 import { showToast } from 'lib/toast'
 
@@ -46,7 +42,6 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
           for (let market of await fetchMarketsFromProvider(provider)) {
             markets.push({
               ...market,
-              balance: await fetchMarketBalance(market),
               price: await getMarketPrice(market),
             })
           }

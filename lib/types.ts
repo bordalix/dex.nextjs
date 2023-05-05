@@ -11,7 +11,6 @@ export interface CoinPair {
 }
 
 export interface TDEXMarket {
-  balance?: TDEXMarketBalance
   provider: TDEXProvider
   baseAsset: string
   baseAmount?: string
@@ -40,21 +39,6 @@ export function isTDEXProvider(provider: any): provider is TDEXProvider {
     typeof provider === 'object' &&
     typeof provider.name === 'string' &&
     typeof provider.endpoint === 'string'
-  )
-}
-
-export interface TDEXMarketBalance {
-  baseAmount: string
-  quoteAmount: string
-}
-
-export function isTDEXMarketBalance(
-  balance: any,
-): balance is TDEXMarketBalance {
-  return (
-    typeof balance === 'object' &&
-    typeof balance.baseAmount === 'string' &&
-    typeof balance.quoteAmount === 'string'
   )
 }
 
