@@ -3,10 +3,11 @@ import { ReactNode, createContext, useEffect, useState } from 'react'
 import { NetworkNames } from '../lib/constants'
 import { getBalances, getMarinaProvider, getNetwork } from '../lib/marina'
 import { defaultNetwork } from 'lib/defaults'
+import { Coin } from 'lib/types'
 
 interface WalletContextProps {
   connected: boolean
-  enoughBalance: (hash: string, amount?: number) => boolean
+  enoughBalance: (coin: Coin) => boolean
   marina: MarinaProvider | undefined
   network: NetworkNames
   setConnected: (arg0: boolean) => void
@@ -97,8 +98,10 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   }, [connected, marina, network])
 
   // checks if there's enough balance for an asset
-  const enoughBalance = (hash: string, amount = 0): boolean => {
-    const balance = balances.find(({ asset }) => asset.assetHash === hash)
+  const enoughBalance = (coin: Coin): boolean => {
+    const { amount, assetHash } = coin
+    if (!amount) return true
+    const balance = balances.find(({ asset }) => asset.assetHash === assetHash)
     return Boolean(balance && balance.amount >= amount)
   }
 

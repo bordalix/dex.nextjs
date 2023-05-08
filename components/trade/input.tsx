@@ -20,7 +20,6 @@ export default function CoinInput({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     setValue(value)
-    console.log('typeof', typeof value, value)
     if (value.match(/\.$/)) return
     const satoshis =
       value === '' ? undefined : toSatoshis(Number(value), coin.precision)

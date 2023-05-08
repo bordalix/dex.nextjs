@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react'
 import { Coin, CoinPair, TDEXMarket } from '../../lib/types'
 import Arrow from './arrow'
 import TradeButton from './button'
-import { TradeButtonStatus } from 'lib/constants'
+import { TradeStatusMessage } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
 import { closeModal, openModal, sleep, toSatoshis } from 'lib/utils'
 import Decimal from 'decimal.js'
@@ -16,8 +16,9 @@ import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
 import { getCoins } from 'lib/marina'
 import { selectCoins } from 'lib/coinSelection'
-import { fetchTradePreview } from 'lib/tdex/trade'
+import { fetchTradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
+import { makeTrade } from 'lib/tdex/trade'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -51,14 +52,12 @@ export default function Trade() {
   // update best market on changes
   useEffect(() => {
     setMarket(getBestMarket(markets, pair))
-    console.log(getBestMarket(markets, pair))
   }, [markets, pair])
 
   // update balance errors
   useEffect(() => {
     if (market) {
-      const { amount, assetHash } = pair.from
-      setBalanceError(!enoughBalance(assetHash, amount))
+      setBalanceError(!enoughBalance(pair.from))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, pair])
@@ -71,7 +70,7 @@ export default function Trade() {
     })
   }
 
-  // called to change dest asset, puts from amount undefined
+  // change destination asset, puts from amount undefined
   const setDestAsset = (asset: Coin) => {
     setPair({
       dest: asset,
@@ -79,7 +78,7 @@ export default function Trade() {
     })
   }
 
-  // called to change from asset, puts dest amount undefined
+  // change from asset, puts destination amount undefined
   const setFromAsset = (asset: Coin) => {
     setPair({
       dest: { ...pair.dest, amount: undefined },
@@ -87,17 +86,21 @@ export default function Trade() {
     })
   }
 
-  // change amount for a given coin
+  // change amount for a given side ('from' or 'dest')
   // makes a trade preview to find the amount of the other coin
   const setAmount = async (which: string, amount?: number) => {
     try {
-      if (!market) return
+      // if it's an invalid pair, return
+      if (!market) throw TradeStatusMessage.InvalidPair
+
+      // if amount is undefined or zero, reset all amounts
       if (!amount) {
         setPair({
           dest: { ...pair.dest, amount },
           from: { ...pair.from, amount },
         })
       } else {
+        // make a preview to find out other coin amount
         const coin = which === 'dest' ? pair.dest : pair.from
         const preview = await fetchTradePreview({
           amount,
@@ -105,8 +108,12 @@ export default function Trade() {
           market,
           pair,
         })
-        if (!preview?.[0]) throw 'unknown preview error'
+        if (!preview?.[0]) {
+          showToast(TradeStatusMessage.ErrorPreview)
+          throw TradeStatusMessage.ErrorPreview
+        }
 
+        // calculate amount for the other coin
         const otherAmount =
           which === 'dest'
             ? Decimal.add(
@@ -118,6 +125,7 @@ export default function Trade() {
                 Number(preview[0].feeAmount),
               ).toNumber()
 
+        // update pair with new amounts
         setPair(
           which === 'dest'
             ? {
@@ -131,23 +139,25 @@ export default function Trade() {
         )
       }
     } catch (err) {
+      // show error on a toast
       showToast(err)
     }
   }
 
-  // change amount for buying coin
+  // change amount for destination (aka buying) coin
   const setDestAmount = async (amount?: number) => setAmount('dest', amount)
 
-  // change amount for selling coin
+  // change amount for from (aka selling) coin
   const setFromAmount = async (amount?: number) => setAmount('from', amount)
 
   // open modal to choose assets
+  // variable side informs wich side clicked to open modal
   const openAssetsModal = (side: string) => {
     setSide(side)
     openModal(ModalIds.AssetsList)
   }
 
-  // when closing trade modal
+  // when closing trade modal reset amounts and trade status
   const closeTradeModal = () => {
     setFromAmount()
     setTradeStatus(TradeStatus.WAITING)
@@ -156,32 +166,39 @@ export default function Trade() {
 
   const onTrade = async () => {
     try {
-      if (!market) throw 'unknown market error'
+      // if it's an invalid pair throw error
+      if (!market) throw TradeStatusMessage.InvalidPair
 
+      // if no amount, return
       const { amount, assetHash } = pair.from
       if (!amount) return
+
+      // check balance
+      if (!enoughBalance(pair.from)) throw TradeStatusMessage.NoBalance
 
       // fecth a preview of this trade
       const preview = await fetchTradePreview({
         amount,
+        coin: pair.from,
         market,
         pair,
-        coin: pair.from,
       })
-      if (!preview?.[0]) throw 'unknown preview error'
-
-      // calculate total amount to send
-      const amountToSend = Decimal.add(
-        Number(preview[0].amount),
-        Number(preview[0].feeAmount),
-      ).toNumber()
+      console.log('preview', preview)
+      if (!preview?.[0]) {
+        showToast(TradeStatusMessage.ErrorPreview)
+        throw TradeStatusMessage.ErrorPreview
+      }
 
       // select utxos for trade
-      const utxos = selectCoins(await getCoins(), assetHash, amountToSend)
+      const utxos = selectCoins(await getCoins(), pair.from)
       console.log('utxos', utxos)
 
+      // make trade, returns id of transaction
+      const txid = await makeTrade(market, pair, utxos)
+      console.log('txid', txid)
+
       openModal(ModalIds.Trade)
-      await sleep(2000)
+      await sleep(10000)
       setTradeStatus(TradeStatus.COMPLETED)
     } catch (err) {
       const errMsg = (err as Error).message
@@ -193,17 +210,17 @@ export default function Trade() {
   }
 
   // manage button status and message
-  const tradeButtonStatus = !connected
-    ? TradeButtonStatus.ConnectWallet
+  const TradeButtonMessage = !connected
+    ? TradeStatusMessage.ConnectWallet
     : !market
-    ? TradeButtonStatus.InvalidPair
+    ? TradeStatusMessage.InvalidPair
     : errorPreview
-    ? TradeButtonStatus.ErrorPreview
+    ? TradeStatusMessage.ErrorPreview
     : balanceError
-    ? TradeButtonStatus.NoBalance
+    ? TradeStatusMessage.NoBalance
     : !pair.from.amount
-    ? TradeButtonStatus.EnterAmount
-    : TradeButtonStatus.Trade
+    ? TradeStatusMessage.EnterAmount
+    : TradeStatusMessage.Trade
 
   return (
     <div className="hero-body">
@@ -226,7 +243,7 @@ export default function Trade() {
               <TradeButton
                 loading={loading}
                 onClick={onTrade}
-                status={tradeButtonStatus}
+                status={TradeButtonMessage}
               />
             </form>
             {network && <p className="is-size-7">Network: {network}</p>}

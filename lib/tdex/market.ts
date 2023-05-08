@@ -44,7 +44,6 @@ export async function getMarketPrice(
   const url = market.provider.endpoint + '/v2/market/price'
   const opt = { headers: { 'Content-Type': 'application/json' } }
   const res = (await axios.post(url, { market }, opt)).data
-  console.log('price', res, market)
   return isTDEXMarketPrice(res) ? res : undefined
 }
 

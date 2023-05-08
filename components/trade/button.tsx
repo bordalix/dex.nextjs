@@ -1,4 +1,4 @@
-import { TradeButtonStatus } from 'lib/constants'
+import { TradeStatusMessage } from 'lib/constants'
 
 interface TradeButtonProps {
   loading: boolean
@@ -12,7 +12,7 @@ export default function TradeButton({
   status,
 }: TradeButtonProps) {
   const btnStyle = 'button is-primary is-medium is-fullwidth mt-4'
-  const disabled = status !== TradeButtonStatus.Trade
+  const disabled = status !== TradeStatusMessage.Trade
   return (
     <button
       className={btnStyle + (loading ? ' is-loading' : '')}

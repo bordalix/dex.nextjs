@@ -8,13 +8,13 @@ export const enum NetworkNames {
   TESTNET = 'testnet',
 }
 
-export const enum TradeButtonStatus {
+export const enum TradeStatusMessage {
   Trade = 'Trade',
   EnterAmount = 'Enter an amount',
   InvalidPair = 'Pair not supported',
   ConnectWallet = 'Connect wallet',
   ErrorPreview = 'Preview not available',
-  NoBalance = 'Insufficient balance on Marina',
+  NoBalance = 'Not enough balance on Marina',
 }
 
 export const enum TradeStatus {

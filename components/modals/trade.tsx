@@ -3,6 +3,8 @@ import Modal, { ModalIds } from './modal'
 import Image from 'next/image'
 import { TradeStatus } from 'lib/constants'
 import ExplorerLink from 'components/explorerLink'
+import { fromSatoshis } from 'lib/utils'
+import { ReactNode } from 'react'
 
 interface TradeModalProps {
   close: () => void
@@ -24,11 +26,31 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
     </button>
   )
 
+  // reusable title
+  const Title = ({ children }: { children: ReactNode }) => (
+    <h1 className="title is-3 has-text-white mt-6">{children}</h1>
+  )
+
+  // resusable subtitle
+  const Subtitle = ({ children }: { children: ReactNode }) => <p>{children}</p>
+
+  // resusable notice
+  const Notice = ({ children }: { children: ReactNode }) => (
+    <p className="is-6 has-text-weight-light has-text-grey">{children}</p>
+  )
+
+  const state =
+    status === TradeStatus.WAITING
+      ? 'waiting'
+      : status === TradeStatus.COMPLETED
+      ? 'completed'
+      : 'error'
+
   return (
     <Modal id={ModalIds.Trade}>
       <div className="columns">
         <div className="column is-full has-text-centered mt-6">
-          {status === TradeStatus.WAITING && (
+          {state === 'waiting' && (
             <>
               <Image
                 src={'/images/icons/loading.svg'}
@@ -36,22 +58,15 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
                 height={128}
                 width={128}
               />
-              <div className="block mt-6 mb-3">
-                <h1 className="title has-text-white">
-                  Waiting for Confirmation...
-                </h1>
-                <p className="subtitle">
-                  Swapping {pair.from.amount} {pair.from.name} for{' '}
-                  {pair.dest.amount} {pair.dest.name}
-                </p>
-                <p className="subtitle is-6 has-text-weight-light has-text-grey">
-                  Confirm this transaction in your Marina wallet
-                </p>
-              </div>
+              <Title>Waiting for Confirmation...</Title>
+              <Subtitle>
+                Swapping {fromSatoshis(pair.from.amount)} {pair.from.name} for{' '}
+                {fromSatoshis(pair.dest.amount)} {pair.dest.name}
+              </Subtitle>
+              <Notice>Confirm this transaction in your Marina wallet</Notice>
             </>
           )}
-
-          {status === TradeStatus.COMPLETED && (
+          {state === 'completed' && (
             <>
               <Image
                 src={'/images/icons/success.svg'}
@@ -59,16 +74,14 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
                 height={128}
                 width={128}
               />
-              <div className="block mt-6 mb-3">
-                <h1 className="title is-3 has-text-white">Trade Completed</h1>
-                <ExplorerLink
-                  url={'https://blockstream.info/liquid/tx/' + txid}
-                />
-                <CloseButton />
-              </div>
+              <Title>Trade Completed</Title>
+              <ExplorerLink
+                url={'https://blockstream.info/liquid/tx/' + txid}
+              />
+              <CloseButton />
             </>
           )}
-          {status !== TradeStatus.COMPLETED && status !== TradeStatus.WAITING && (
+          {state === 'error' && (
             <>
               <Image
                 src={'/images/icons/error.svg'}
@@ -76,11 +89,9 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
                 height={128}
                 width={128}
               />
-              <div className="block mt-6 mb-3">
-                <h1 className="title has-text-white">Something went wrong</h1>
-                <p className="subtitle">{error}</p>
-                <CloseButton />
-              </div>
+              <Title>Something went wrong</Title>
+              <Subtitle>{error}</Subtitle>
+              <CloseButton />
             </>
           )}
         </div>

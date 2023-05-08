@@ -7,4 +7,4 @@ export const defaultDestAsset = (network = defaultNetwork) =>
   findAssetByTicker('USDT', network)
 
 export const defaultFromAsset = (network = defaultNetwork) =>
-  findAssetByTicker('FUJI', network)
+  findAssetByTicker('L-BTC', network)

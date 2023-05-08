@@ -1,9 +1,10 @@
 import type { Utxo } from 'marina-provider'
+import { Coin } from './types'
 
 const utxoValue = (u: Utxo) => u.blindingData?.value || 0
 
 // coin selection strategy: accumulate utxos until value is achieved
-const accumulativeStrategy = (coins: Utxo[], target: number): Utxo[] => {
+const accumulativeStrategy = (coins: Utxo[], target = 0): Utxo[] => {
   let totalValue = 0
   const selectedCoins = []
 
@@ -21,7 +22,7 @@ const accumulativeStrategy = (coins: Utxo[], target: number): Utxo[] => {
 // coin selection strategy: tries to get an exact value (no change)
 const branchAndBoundStrategy = (
   coins: Utxo[],
-  target: number,
+  target = 0,
 ): Utxo[] | undefined => {
   const MAX_TRIES = 1_000
   const selected: number[] = []
@@ -100,20 +101,19 @@ const branchAndBoundStrategy = (
 }
 
 // select coins for given amount, with respective blinding private key
-export function selectCoins(
-  utxos: Utxo[],
-  asset: string,
-  minAmount: number,
-): Utxo[] {
+export function selectCoins(utxos: Utxo[], coin: Coin): Utxo[] {
+  const { amount, assetHash } = coin
   // sort utxos in descending order of value: will decrease number of inputs
   // (and fees) but will increase utxo fragmentation
   const _utxos = utxos
-    .filter((utxo) => utxo.blindingData && utxo.blindingData.asset === asset)
+    .filter(
+      (utxo) => utxo.blindingData && utxo.blindingData.asset === assetHash,
+    )
     .sort((a, b) => utxoValue(b) - utxoValue(a))
 
   // try to find a combination with exact value (aka no change) first
   return (
-    branchAndBoundStrategy(_utxos, minAmount) ??
-    accumulativeStrategy(_utxos, minAmount)
+    branchAndBoundStrategy(_utxos, amount) ??
+    accumulativeStrategy(_utxos, amount)
   )
 }
