@@ -3,8 +3,6 @@ export const marinaMainAccountID = 'mainAccount' // m/84'/1776'/0'
 export const marinaTestnetMainAccountID = 'mainAccountTest' // m/84'/1'/0'
 export const marinaLegacyMainAccountID = 'mainAccountLegacy' // m/44'/0'/0'
 
-export const PRECISION = 8
-
 export const enum NetworkNames {
   MAINNET = 'liquid',
   TESTNET = 'testnet',

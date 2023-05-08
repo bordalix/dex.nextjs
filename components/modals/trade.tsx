@@ -1,24 +1,24 @@
 import { CoinPair } from 'lib/types'
 import Modal, { ModalIds } from './modal'
 import Image from 'next/image'
-import { closeModal } from 'lib/utils'
 import { TradeStatus } from 'lib/constants'
 import ExplorerLink from 'components/explorerLink'
 
 interface TradeModalProps {
+  close: () => void
   error?: string
   pair: CoinPair
   status?: TradeStatus
   txid?: string
 }
 
-const TradeModal = ({ error, pair, status, txid }: TradeModalProps) => {
+const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
   // reusable close modal button
   const CloseButton = () => (
     <button
       type="button"
       className="button is-primary is-medium is-rounded mt-6"
-      onClick={() => closeModal(ModalIds.Trade)}
+      onClick={close}
     >
       Close
     </button>

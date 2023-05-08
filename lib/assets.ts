@@ -1,31 +1,12 @@
 import { Coin } from './types'
-import { NetworkNames, PRECISION } from './constants'
+import { NetworkNames } from './constants'
 
-const enum AssetIcons {
-  FUJI = '/images/assets/lbtc.svg',
-  LBTC = '/images/assets/lbtc.svg',
-  LCAD = '/images/assets/lcad.png',
-  USDT = '/images/assets/usdt.svg',
-}
-
-const enum AssetNames {
-  FUJI = 'Fuji USD',
-  LBTC = 'Liquid bitcoin',
-  LCAD = 'Liquid CAD',
-  USDT = 'Tether USD',
-}
-
-const enum AssetTickers {
-  FUJI = 'FUJI',
-  LBTC = 'L-BTC',
-  LCAD = 'LCAD',
-  USDT = 'USDT',
-}
-
+// Note: Coin is an Asset with imgSrc and not mandatory amount
 interface IAssetHash {
   [network: string]: string
 }
 
+// id (aka hash) for assets across different networks
 const AssetHashes: Record<string, IAssetHash> = {
   FUJI: {
     [NetworkNames.TESTNET]:
@@ -51,38 +32,60 @@ const AssetHashes: Record<string, IAssetHash> = {
   },
 }
 
+// common characteristics for a coin across different networks
+const ProtoAssets: Record<string, Omit<Coin, 'assetHash'>> = {
+  FUJI: {
+    iconSrc: '/images/assets/lbtc.svg',
+    name: 'Fuji USD',
+    precision: 8,
+    ticker: 'FUJI',
+  },
+  LBTC: {
+    iconSrc: '/images/assets/lbtc.svg',
+    name: 'Liquid Bitcoin',
+    precision: 8,
+    ticker: 'L-BTC',
+  },
+  LCAD: {
+    iconSrc: '/images/assets/lcad.png',
+    name: 'Liquid CAD',
+    precision: 8,
+    ticker: 'LCAD',
+  },
+  USDT: {
+    iconSrc: '/images/assets/usdt.svg',
+    name: 'Liquid Tether',
+    precision: 8,
+    ticker: 'USDT',
+  },
+}
+
 /**
- * Returns all supported coins
+ * Returns all supported assets
  * @param network network name
  * @returns array of coins
  */
-export const assets = (network: NetworkNames): Coin[] => [
-  {
-    assetHash: AssetHashes.FUJI[network],
-    iconSrc: AssetIcons.FUJI,
-    name: AssetNames.FUJI,
-    precision: PRECISION,
-    ticker: AssetTickers.FUJI,
-  },
-  {
-    assetHash: AssetHashes.LBTC[network],
-    iconSrc: AssetIcons.LBTC,
-    name: AssetNames.LBTC,
-    precision: PRECISION,
-    ticker: AssetTickers.LBTC,
-  },
-  {
-    assetHash: AssetHashes.LCAD[network],
-    iconSrc: AssetIcons.LCAD,
-    name: AssetNames.LCAD,
-    precision: PRECISION,
-    ticker: AssetTickers.LCAD,
-  },
-  {
-    assetHash: AssetHashes.USDT[network],
-    iconSrc: AssetIcons.USDT,
-    name: AssetNames.USDT,
-    precision: PRECISION,
-    ticker: AssetTickers.USDT,
-  },
-]
+export const supportedAssets = (network: NetworkNames): Coin[] => {
+  const assets = []
+  for (const [key, asset] of Object.entries(ProtoAssets)) {
+    if (AssetHashes[key][network]) {
+      assets.push({ ...asset, assetHash: AssetHashes[key][network] })
+    }
+  }
+  return assets
+}
+
+/**
+ * Find asset by ticker
+ * @param ticker string
+ * @param network network name
+ * @returns coin or undefined
+ */
+export const findAssetByTicker = (
+  ticker: string,
+  network: NetworkNames,
+): Coin => {
+  const asset = supportedAssets(network).find((a) => a.ticker === ticker)
+  if (!asset) throw new Error('unknown ticker')
+  return asset
+}

@@ -2,7 +2,7 @@ import { Coin } from 'lib/types'
 import Modal, { ModalIds } from './modal'
 import Image from 'next/image'
 import { closeModal } from 'lib/utils'
-import { assets } from 'lib/assets'
+import { supportedAssets } from 'lib/assets'
 import { WalletContext } from 'providers/wallet'
 import { useContext } from 'react'
 import { TradeContext } from 'providers/trade'
@@ -32,9 +32,8 @@ const AssetListModal = ({
     assetsOnMarkets.add(market.baseAsset)
     assetsOnMarkets.add(market.quoteAsset)
   })
-  console.log('assetsOnMarkets', assetsOnMarkets)
 
-  const listOfAssets = assets(network).filter((asset) =>
+  const listOfAssets = supportedAssets(network).filter((asset) =>
     assetsOnMarkets.has(asset.assetHash),
   )
 

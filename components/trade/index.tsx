@@ -5,7 +5,7 @@ import Arrow from './arrow'
 import TradeButton from './button'
 import { TradeButtonStatus } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
-import { openModal, sleep, toSatoshis } from 'lib/utils'
+import { closeModal, openModal, sleep, toSatoshis } from 'lib/utils'
 import Decimal from 'decimal.js'
 import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
@@ -147,6 +147,13 @@ export default function Trade() {
     openModal(ModalIds.AssetsList)
   }
 
+  // when closing trade modal
+  const closeTradeModal = () => {
+    setFromAmount()
+    setTradeStatus(TradeStatus.WAITING)
+    closeModal(ModalIds.Trade)
+  }
+
   const onTrade = async () => {
     try {
       if (!market) throw 'unknown market error'
@@ -239,6 +246,7 @@ export default function Trade() {
           side={side}
         />
         <TradeModal
+          close={closeTradeModal}
           error={tradeError}
           pair={pair}
           status={tradeStatus}
