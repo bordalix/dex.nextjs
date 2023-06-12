@@ -172,6 +172,7 @@ export default function Trade() {
       openModal(ModalIds.Trade)
 
       // propose trade
+      setTradeStatus(TradeStatus.PROPOSING)
       const propose = await proposeTrade(market, pair)
       if (!propose.swapAccept) throw new Error('TDEX swap not accepted')
       console.log(
@@ -180,6 +181,7 @@ export default function Trade() {
       )
 
       // sign tx
+      setTradeStatus(TradeStatus.CONFIRM)
       const signedTx = await signTx(propose.swapAccept.transaction)
       if (!signedTx) throw new Error('Error on tx signing')
 

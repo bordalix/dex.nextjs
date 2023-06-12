@@ -91,7 +91,7 @@ const makePset = async (
       script: changeAddress.scriptPubKey,
       amount: changeAmount,
       asset: pair.from.assetHash,
-      blinderIndex: 1,
+      blinderIndex: 0,
       blindingPublicKey: changeAddress.blindingKey,
     },
   ])

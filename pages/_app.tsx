@@ -19,19 +19,13 @@ function MyApp({ Component, pageProps }: AppProps) {
             content="TDEX reference implementation in NextJS"
             property="og:description"
           />
-          <meta
-            content="https://raw.githubusercontent.com/fuji-money/website/main/images/og_image.png"
-            property="og:image"
-          />
+          <meta content="/images/og/card1200.png" property="og:image" />
           <meta content="TDEX - NextJS Edition" property="twitter:title" />
           <meta
             content="TDEX reference implementation in NextJS"
             property="twitter:description"
           />
-          <meta
-            content="https://raw.githubusercontent.com/fuji-money/website/main/images/og_image.png"
-            property="twitter:image"
-          />
+          <meta content="/images/og/card1200.png" property="twitter:image" />
           <meta property="og:type" content="website" />
           <meta content="summary_large_image" name="twitter:card" />
           <link rel="shortcut icon" href="/images/favicon.png" />
