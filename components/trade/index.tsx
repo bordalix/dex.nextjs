@@ -18,6 +18,7 @@ import { signTx } from 'lib/marina'
 import { fetchTradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
 import { completeTrade, proposeTrade } from 'lib/tdex/trade'
+import { Pset } from 'liquidjs-lib'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -173,6 +174,10 @@ export default function Trade() {
       // propose trade
       const propose = await proposeTrade(market, pair)
       if (!propose.swapAccept) throw new Error('TDEX swap not accepted')
+      console.log(
+        'transaction returned on swapAccept',
+        Pset.fromBase64(propose.swapAccept.transaction),
+      )
 
       // sign tx
       const signedTx = await signTx(propose.swapAccept.transaction)

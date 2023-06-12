@@ -136,6 +136,7 @@ export const proposeTrade = async (
     await fetchTradePreview({ amount: from.amount, coin: from, market, pair })
   )[0]
   if (!preview) throw new Error('Error on preview')
+  console.log('preview before propose request', preview)
 
   const tradeProposeRequest: TDEXv2ProposeTradeRequest = {
     feeAmount: preview.feeAmount,
