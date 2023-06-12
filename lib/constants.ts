@@ -18,7 +18,8 @@ export const enum TradeStatusMessage {
 }
 
 export const enum TradeStatus {
-  WAITING,
+  PROPOSING,
+  CONFIRM,
   COMPLETED,
   ERROR,
 }

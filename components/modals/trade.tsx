@@ -26,6 +26,16 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
     </button>
   )
 
+  // reusable icon
+  const Icon = ({ status }: { status: string }) => (
+    <Image
+      src={`/images/icons/${status}.svg`}
+      alt={`${status} icon`}
+      height={128}
+      width={128}
+    />
+  )
+
   // reusable title
   const Title = ({ children }: { children: ReactNode }) => (
     <h1 className="title is-3 has-text-white mt-6">{children}</h1>
@@ -40,8 +50,10 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
   )
 
   const state =
-    status === TradeStatus.WAITING
-      ? 'waiting'
+    status === TradeStatus.PROPOSING
+      ? 'proposing'
+      : status === TradeStatus.CONFIRM
+      ? 'confirm'
       : status === TradeStatus.COMPLETED
       ? 'completed'
       : 'error'
@@ -50,14 +62,19 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
     <Modal id={ModalIds.Trade}>
       <div className="columns">
         <div className="column is-full has-text-centered mt-6">
-          {state === 'waiting' && (
+          {state === 'proposing' && (
             <>
-              <Image
-                src={'/images/icons/loading.svg'}
-                alt="success icon"
-                height={128}
-                width={128}
-              />
+              <Icon status="loading" />
+              <Title>Proposing Trade...</Title>
+              <Subtitle>
+                Swapping {fromSatoshis(pair.from.amount)} {pair.from.name} for{' '}
+                {fromSatoshis(pair.dest.amount)} {pair.dest.name}
+              </Subtitle>
+            </>
+          )}
+          {state === 'confirm' && (
+            <>
+              <Icon status="loading" />
               <Title>Waiting for Confirmation...</Title>
               <Subtitle>
                 Swapping {fromSatoshis(pair.from.amount)} {pair.from.name} for{' '}
@@ -68,12 +85,7 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
           )}
           {state === 'completed' && (
             <>
-              <Image
-                src={'/images/icons/success.svg'}
-                alt="success icon"
-                height={128}
-                width={128}
-              />
+              <Icon status="success" />
               <Title>Trade Completed</Title>
               <ExplorerLink
                 url={'https://blockstream.info/liquid/tx/' + txid}
@@ -83,12 +95,7 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
           )}
           {state === 'error' && (
             <>
-              <Image
-                src={'/images/icons/error.svg'}
-                alt="error icon"
-                height={128}
-                width={128}
-              />
+              <Icon status="error" />
               <Title>Something went wrong</Title>
               <Subtitle>{error}</Subtitle>
               <CloseButton />

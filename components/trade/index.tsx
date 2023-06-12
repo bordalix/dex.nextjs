@@ -1,11 +1,11 @@
 import CoinInput from './input'
 import { useContext, useEffect, useState } from 'react'
-import { Coin, CoinPair, TDEXMarket } from '../../lib/types'
+import { Coin, CoinPair, TDEXv2Market } from '../../lib/types'
 import Arrow from './arrow'
 import TradeButton from './button'
 import { TradeStatusMessage } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
-import { closeModal, openModal, sleep, toSatoshis } from 'lib/utils'
+import { closeModal, openModal } from 'lib/utils'
 import Decimal from 'decimal.js'
 import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
@@ -14,11 +14,10 @@ import { getBestMarket } from 'lib/tdex/market'
 import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
 import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
-import { getCoins } from 'lib/marina'
-import { selectCoins } from 'lib/coinSelection'
+import { signTx } from 'lib/marina'
 import { fetchTradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
-import { makeTrade } from 'lib/tdex/trade'
+import { completeTrade, proposeTrade } from 'lib/tdex/trade'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -26,10 +25,10 @@ export default function Trade() {
 
   const [balanceError, setBalanceError] = useState(false)
   const [errorPreview, setErrorPreview] = useState(false)
-  const [market, setMarket] = useState<TDEXMarket>()
+  const [market, setMarket] = useState<TDEXv2Market>()
   const [side, setSide] = useState('from')
   const [tradeError, setTradeError] = useState<string>()
-  const [tradeStatus, setTradeStatus] = useState(TradeStatus.WAITING)
+  const [tradeStatus, setTradeStatus] = useState(TradeStatus.PROPOSING)
   const [txid, setTxid] = useState<string>()
 
   // default pair
@@ -102,28 +101,22 @@ export default function Trade() {
       } else {
         // make a preview to find out other coin amount
         const coin = which === 'dest' ? pair.dest : pair.from
-        const preview = await fetchTradePreview({
-          amount,
-          coin,
-          market,
-          pair,
-        })
-        if (!preview?.[0]) {
+        const preview = (
+          await fetchTradePreview({
+            amount,
+            coin,
+            market,
+            pair,
+          })
+        )[0]
+
+        if (!preview) {
           showToast(TradeStatusMessage.ErrorPreview)
           throw TradeStatusMessage.ErrorPreview
         }
 
         // calculate amount for the other coin
-        const otherAmount =
-          which === 'dest'
-            ? Decimal.add(
-                Number(preview[0].amount),
-                Number(preview[0].feeAmount),
-              ).toNumber()
-            : Decimal.sub(
-                Number(preview[0].amount),
-                Number(preview[0].feeAmount),
-              ).toNumber()
+        const otherAmount = Number(preview.amount)
 
         // update pair with new amounts
         setPair(
@@ -160,7 +153,7 @@ export default function Trade() {
   // when closing trade modal reset amounts and trade status
   const closeTradeModal = () => {
     setFromAmount()
-    setTradeStatus(TradeStatus.WAITING)
+    setTradeStatus(TradeStatus.PROPOSING)
     closeModal(ModalIds.Trade)
   }
 
@@ -170,35 +163,27 @@ export default function Trade() {
       if (!market) throw TradeStatusMessage.InvalidPair
 
       // if no amount, return
-      const { amount, assetHash } = pair.from
-      if (!amount) return
+      if (!pair.from.amount) return
 
       // check balance
       if (!enoughBalance(pair.from)) throw TradeStatusMessage.NoBalance
 
-      // fecth a preview of this trade
-      const preview = await fetchTradePreview({
-        amount,
-        coin: pair.from,
-        market,
-        pair,
-      })
-      console.log('preview', preview)
-      if (!preview?.[0]) {
-        showToast(TradeStatusMessage.ErrorPreview)
-        throw TradeStatusMessage.ErrorPreview
-      }
-
-      // select utxos for trade
-      const utxos = selectCoins(await getCoins(), pair.from)
-      console.log('utxos', utxos)
-
-      // make trade, returns id of transaction
-      const txid = await makeTrade(market, pair, utxos)
-      console.log('txid', txid)
-
       openModal(ModalIds.Trade)
-      await sleep(10000)
+
+      // propose trade
+      const propose = await proposeTrade(market, pair)
+      if (!propose.swapAccept) throw new Error('TDEX swap not accepted')
+
+      // sign tx
+      const signedTx = await signTx(propose.swapAccept.transaction)
+      if (!signedTx) throw new Error('Error on tx signing')
+
+      // complete trade
+      const completeResponse = await completeTrade(propose, market, signedTx)
+      if (!completeResponse.txid) throw new Error('Error completing TDEX swap')
+
+      // set values and return
+      setTxid(completeResponse.txid)
       setTradeStatus(TradeStatus.COMPLETED)
     } catch (err) {
       const errMsg = (err as Error).message

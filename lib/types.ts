@@ -1,4 +1,4 @@
-import { type Asset } from 'marina-provider'
+import { Asset } from 'marina-provider'
 
 export type Coin = Asset & {
   amount?: number
@@ -10,18 +10,18 @@ export interface CoinPair {
   dest: Coin
 }
 
-export interface TDEXMarket {
-  provider: TDEXProvider
+export interface TDEXv2Market {
+  provider: TDEXv2Provider
   baseAsset: string
   baseAmount?: string
   quoteAsset: string
   quoteAmount?: string
   percentageFee?: { baseAsset: string; quoteAsset: string }
   fixedFee?: { baseAsset: string; quoteAsset: string }
-  price?: TDEXMarketPrice
+  price?: TDEXv2MarketPrice
 }
 
-export function isTDEXMarket(market: any): market is TDEXMarket {
+export function isTDEXv2Market(market: any): market is TDEXv2Market {
   return (
     typeof market === 'object' &&
     typeof market.baseAsset === 'string' &&
@@ -29,12 +29,12 @@ export function isTDEXMarket(market: any): market is TDEXMarket {
   )
 }
 
-export interface TDEXProvider {
+export interface TDEXv2Provider {
   name: string
   endpoint: string
 }
 
-export function isTDEXProvider(provider: any): provider is TDEXProvider {
+export function isTDEXv2Provider(provider: any): provider is TDEXv2Provider {
   return (
     typeof provider === 'object' &&
     typeof provider.name === 'string' &&
@@ -42,12 +42,12 @@ export function isTDEXProvider(provider: any): provider is TDEXProvider {
   )
 }
 
-export interface TDEXMarketPrice {
+export interface TDEXv2MarketPrice {
   spotPrice: number
   minTradableAmount: string
 }
 
-export function isTDEXMarketPrice(price: any): price is TDEXMarketPrice {
+export function isTDEXv2MarketPrice(price: any): price is TDEXv2MarketPrice {
   return (
     typeof price === 'object' &&
     typeof price.spotPrice === 'number' &&
@@ -55,20 +55,20 @@ export function isTDEXMarketPrice(price: any): price is TDEXMarketPrice {
   )
 }
 
-export enum TDEXTradeType {
+export enum TDEXv2TradeType {
   BUY = 0,
   SELL = 1,
 }
 
-export interface TDEXTradePreview {
-  market: TDEXMarket
-  type: TDEXTradeType
+export interface TDEXv2PreviewTradeRequest {
+  market: TDEXv2Market
+  type: TDEXv2TradeType
   amount?: string
   asset?: string
   feeAsset?: string
 }
 
-export interface TDEXTradePreviewResponse {
+export interface TDEXv2PreviewTradeResponse {
   amount: string
   asset: string
   fee: {
@@ -80,9 +80,9 @@ export interface TDEXTradePreviewResponse {
   price: { basePrice: number; quotePrice: number }
 }
 
-export function isTDEXTradePreviewResponse(
+export function isTDEXv2PreviewTradeResponse(
   resp: any,
-): resp is TDEXTradePreviewResponse {
+): resp is TDEXv2PreviewTradeResponse {
   return (
     typeof resp === 'object' &&
     typeof resp.amount === 'string' &&
@@ -98,4 +98,61 @@ export function isTDEXTradePreviewResponse(
     typeof resp.price.basePrice === 'number' &&
     typeof resp.price.quotePrice === 'number'
   )
+}
+
+export interface TDEXv2UnblindedInput {
+  index: number
+  asset: string
+  amount: string
+  assetBlinder: string
+  amountBlinder: string
+}
+
+export interface TDEXv2TradeRequest {
+  id: string
+  amountP: string
+  assetP: string
+  amountR: string
+  assetR: string
+  transaction: string
+  unblindedInputs: TDEXv2UnblindedInput[]
+}
+
+export interface TDEXv2ProposeTradeRequest {
+  feeAmount: string
+  feeAsset: string
+  market: Pick<TDEXv2Market, 'baseAsset' | 'quoteAsset'>
+  swapRequest: TDEXv2TradeRequest
+  type: TDEXv2TradeType
+}
+
+export interface TDEXv2SwapAccept {
+  id: string
+  requestId: string
+  transaction: string
+  unblindedInputs: TDEXv2UnblindedInput[]
+}
+
+export interface TDEXv2SwapFail {
+  id: string
+  messageId: string
+  failureCode: number
+  failureMessage: string
+}
+
+export interface TDEXv2ProposeTradeResponse {
+  swapAccept: TDEXv2SwapAccept
+  swapFail: TDEXv2SwapFail
+  expiryTimeUnix: string
+}
+
+export interface TDEXv2CompleteTradeRequest {
+  id: string
+  acceptId: string
+  transaction: string
+}
+
+export interface TDEXv2CompleteTradeResponse {
+  txid: string
+  swapFail: TDEXv2SwapFail
 }

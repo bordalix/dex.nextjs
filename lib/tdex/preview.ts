@@ -2,15 +2,15 @@ import axios from 'axios'
 import {
   Coin,
   CoinPair,
-  TDEXMarket,
-  TDEXTradePreview,
-  isTDEXTradePreviewResponse,
+  TDEXv2Market,
+  TDEXv2PreviewTradeRequest,
+  isTDEXv2PreviewTradeResponse,
 } from 'lib/types'
 import { getTradeType } from './market'
 
 interface TradePreviewProps {
   amount: number
-  market: TDEXMarket
+  market: TDEXv2Market
   pair: CoinPair
   coin: Coin
 }
@@ -24,7 +24,7 @@ export async function fetchTradePreview({
   const { dest, from } = pair
   const otherCoin = coin.assetHash === from.assetHash ? dest : from
   const type = getTradeType(market, pair)
-  const trade: TDEXTradePreview = {
+  const trade: TDEXv2PreviewTradeRequest = {
     amount: amount.toString(),
     asset: coin.assetHash,
     feeAsset: otherCoin.assetHash,
@@ -35,5 +35,5 @@ export async function fetchTradePreview({
   const opt = { headers: { 'Content-Type': 'application/json' } }
   const res = (await axios.post(url, trade, opt)).data.previews
   if (!Array.isArray(res)) throw new Error('Invalid trade/preview response')
-  return res.filter(isTDEXTradePreviewResponse)
+  return res.filter(isTDEXv2PreviewTradeResponse)
 }

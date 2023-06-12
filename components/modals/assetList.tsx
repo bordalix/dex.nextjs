@@ -44,7 +44,7 @@ const AssetListModal = ({
           <h1 className="title has-text-white">Select an asset</h1>
           {listOfAssets.map((a, i) => (
             <div
-              className="is-flex is-align-items-center my-4"
+              className="is-flex is-align-items-center my-4 is-clickable"
               onClick={() => handleClick(a)}
               key={i}
             >

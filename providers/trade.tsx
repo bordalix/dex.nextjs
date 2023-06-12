@@ -6,14 +6,14 @@ import {
   useState,
 } from 'react'
 import { WalletContext } from './wallet'
-import { TDEXMarket, isTDEXMarket } from 'lib/types'
+import { TDEXv2Market, isTDEXv2Market } from 'lib/types'
 import { fetchMarketsFromProvider, getMarketPrice } from 'lib/tdex/market'
 import { getProvidersFromRegistry } from 'lib/tdex/registry'
 import { showToast } from 'lib/toast'
 
 interface TradeContextProps {
   loading: boolean
-  markets: TDEXMarket[]
+  markets: TDEXv2Market[]
 }
 
 export const TradeContext = createContext<TradeContextProps>({
@@ -29,14 +29,14 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
   const { network } = useContext(WalletContext)
 
   const [loading, setLoading] = useState(false)
-  const [markets, setMarkets] = useState<TDEXMarket[]>([])
+  const [markets, setMarkets] = useState<TDEXv2Market[]>([])
 
   // fetch and set markets (needs to fetch providers)
   useEffect(() => {
     const asyncFetchAndSetMarkets = async () => {
       try {
         setLoading(true)
-        const markets: TDEXMarket[] = []
+        const markets: TDEXv2Market[] = []
         for (const provider of await getProvidersFromRegistry(network)) {
           for (let market of await fetchMarketsFromProvider(provider)) {
             markets.push({
@@ -45,7 +45,7 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
             })
           }
         }
-        setMarkets(markets.filter(isTDEXMarket))
+        setMarkets(markets.filter(isTDEXv2Market))
         setLoading(false)
       } catch (err) {
         console.error(err)

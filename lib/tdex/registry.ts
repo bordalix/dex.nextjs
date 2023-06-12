@@ -1,5 +1,5 @@
 import { NetworkNames } from '../constants'
-import { TDEXProvider, isTDEXProvider } from '../types'
+import { TDEXv2Provider, isTDEXv2Provider } from '../types'
 import axios from 'axios'
 
 /**
@@ -24,7 +24,7 @@ function getRegistryURL(network: NetworkNames): string {
  */
 export async function getProvidersFromRegistry(
   network: NetworkNames = NetworkNames.MAINNET,
-): Promise<TDEXProvider[]> {
+): Promise<TDEXv2Provider[]> {
   // TODO: remove this after registry is updated
   if (network === NetworkNames.TESTNET) {
     return [
@@ -37,5 +37,5 @@ export async function getProvidersFromRegistry(
   // end of TODO
   const res = (await axios.get(getRegistryURL(network))).data
   if (!Array.isArray(res)) throw new Error('Invalid registry response')
-  return res.filter(isTDEXProvider)
+  return res.filter(isTDEXv2Provider)
 }

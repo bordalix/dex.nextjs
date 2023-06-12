@@ -35,7 +35,7 @@ const AssetHashes: Record<string, IAssetHash> = {
 // common characteristics for a coin across different networks
 const ProtoAssets: Record<string, Omit<Coin, 'assetHash'>> = {
   FUJI: {
-    iconSrc: '/images/assets/lbtc.svg',
+    iconSrc: '/images/assets/fusd.svg',
     name: 'Fuji USD',
     precision: 8,
     ticker: 'FUJI',
