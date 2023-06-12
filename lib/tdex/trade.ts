@@ -13,6 +13,8 @@ import {
   TDEXv2CompleteTradeRequest,
   CoinPair,
   TDEXv2ProposeTradeResponse,
+  isTDEXv2ProposeTradeResponse,
+  isTDEXv2CompleteTradeResponse,
 } from '../types'
 import { selectCoins } from 'lib/coinSelection'
 import { makeid } from 'lib/utils'
@@ -109,10 +111,10 @@ const createSwapRequest = async (
 
   const { pset, unblindedInputs } = await makePset(pair, preview)
 
-  // make swapRequest and return it
+  // create swapRequest object and return it
   const swapRequest: TDEXv2TradeRequest = {
     id: makeid(8),
-    amountP: pair.from.amount?.toString(),
+    amountP: pair.from.amount.toString(),
     assetP: pair.from.assetHash,
     amountR: preview.amount.toString(),
     assetR: pair.dest.assetHash,
@@ -150,6 +152,8 @@ export const proposeTrade = async (
     market.provider.endpoint + '/v2/trade/propose',
     tradeProposeRequest,
   )
+  if (!isTDEXv2ProposeTradeResponse(tradeProposeResponse))
+    throw new Error('Invalid trade propose response')
 
   return tradeProposeResponse
 }
@@ -159,6 +163,7 @@ export const completeTrade = async (
   market: TDEXv2Market,
   transaction: string,
 ): Promise<TDEXv2CompleteTradeResponse> => {
+  if (!propose.swapAccept) throw new Error('Propose not accepted')
   const completeTradeRequest: TDEXv2CompleteTradeRequest = {
     id: makeid(8),
     acceptId: propose.swapAccept.id,
@@ -168,5 +173,8 @@ export const completeTrade = async (
     market.provider.endpoint + '/v2/trade/complete',
     completeTradeRequest,
   )
+  if (!isTDEXv2CompleteTradeResponse(completeTradeResponse))
+    throw new Error('Invalid complete trade response')
+
   return completeTradeResponse
 }
