@@ -149,12 +149,7 @@ export interface TDEXv2ProposeTradeResponse {
 export function isTDEXv2ProposeTradeResponse(
   resp: any,
 ): resp is TDEXv2PreviewTradeResponse {
-  return (
-    typeof resp === 'object' &&
-    typeof resp.expiryTimeUnix === 'string' &&
-    ((typeof resp.swapAccept === 'object' && resp.swapAccept.id === 'string') ||
-      (typeof resp.swapFail === 'object' && resp.swapFail.id === 'string'))
-  )
+  return typeof resp === 'object' && typeof resp.expiryTimeUnix === 'string'
 }
 
 export interface TDEXv2CompleteTradeRequest {

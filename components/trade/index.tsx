@@ -6,7 +6,6 @@ import TradeButton from './button'
 import { TradeStatusMessage } from 'lib/constants'
 import { WalletContext } from 'providers/wallet'
 import { closeModal, openModal } from 'lib/utils'
-import Decimal from 'decimal.js'
 import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
 import { ModalIds } from 'components/modals/modal'
@@ -166,6 +165,7 @@ export default function Trade() {
 
       // propose trade
       setTradeStatus(TradeStatus.PROPOSING)
+
       const propose = await proposeTrade(market, pair)
       if (!propose.swapAccept) throw new Error('TDEX swap not accepted')
       console.log(
@@ -175,6 +175,7 @@ export default function Trade() {
 
       // sign tx
       setTradeStatus(TradeStatus.CONFIRM)
+
       const signedTx = await signTx(propose.swapAccept.transaction)
       if (!signedTx) throw new Error('Error on tx signing')
 
