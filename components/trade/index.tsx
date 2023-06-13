@@ -102,14 +102,7 @@ export default function Trade() {
       } else {
         // make a preview to find out other coin amount
         const coin = which === 'dest' ? pair.dest : pair.from
-        const preview = (
-          await fetchTradePreview({
-            amount,
-            coin,
-            market,
-            pair,
-          })
-        )[0]
+        const preview = (await fetchTradePreview(amount, coin, market, pair))[0]
 
         if (!preview) {
           showToast(TradeStatusMessage.ErrorPreview)

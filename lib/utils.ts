@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js'
+import { Utxo } from 'marina-provider'
 
 /**
  * Converts currency from satoshis to unit
@@ -43,6 +44,11 @@ export const closeModal = (id: string): void => {
   document.getElementById(id)?.classList.remove('is-active')
 }
 
+/**
+ * Sleeps for N miliseconds
+ * @param miliseconds number
+ * @returns void
+ */
 export async function sleep(miliseconds: number) {
   await Promise.resolve(
     new Promise((resolve) => {
@@ -51,6 +57,11 @@ export async function sleep(miliseconds: number) {
   )
 }
 
+/**
+ * Generates a random id with 'length' characters
+ * @param length number
+ * @returns string
+ */
 export function makeid(length: number): string {
   let result = ''
   const characters =
@@ -61,3 +72,10 @@ export function makeid(length: number): string {
   }
   return result
 }
+
+/**
+ * Returns value for a given utxo
+ * @param utxo Utxo
+ * @returns number
+ */
+export const utxoValue = (utxo: Utxo): number => utxo.blindingData?.value || 0

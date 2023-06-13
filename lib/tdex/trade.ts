@@ -17,7 +17,7 @@ import {
   isTDEXv2CompleteTradeResponse,
 } from '../types'
 import { selectCoins } from 'lib/coinSelection'
-import { makeid } from 'lib/utils'
+import { makeid, utxoValue } from 'lib/utils'
 
 const axiosPost = async (
   endpoint: string,
@@ -28,11 +28,17 @@ const axiosPost = async (
   return res.data
 }
 
+/**
+ * Creates pset to be used on swap request
+ * @param pair CoinPair
+ * @param preview TDEXv2PreviewTradeResponse
+ * @returns { pset, unblindedInputs }
+ */
 const makePset = async (
   pair: CoinPair,
   preview: TDEXv2PreviewTradeResponse,
 ): Promise<{ pset: Pset; unblindedInputs: TDEXv2UnblindedInput[] }> => {
-  // build Psbt
+  // build Pset
   const pset = Creator.newPset()
   const updater = new Updater(pset)
   const unblindedInputs: TDEXv2UnblindedInput[] = []
@@ -42,10 +48,9 @@ const makePset = async (
   if (!utxos) throw new Error('Not enough funds')
 
   // calculate change amount
+  const utxosAmount = utxos.reduce((value, utxo) => value + utxoValue(utxo), 0)
   const amountToSend = pair.from.amount ?? 0
-  const changeAmount =
-    utxos.reduce((value, utxo) => value + (utxo.blindingData?.value ?? 0), 0) -
-    amountToSend
+  const changeAmount = utxosAmount - amountToSend
 
   // add inputs to pset
   for (const utxo of utxos) {
@@ -68,7 +73,7 @@ const makePset = async (
     }
   }
 
-  // receiving script
+  // address to receive the other asset
   const receivingAddress = address.fromConfidential(
     (await getNextAddress()).confidentialAddress,
   )
@@ -83,25 +88,33 @@ const makePset = async (
     },
   ])
 
-  // change address
-  const changeAddress = address.fromConfidential(
-    (await getNextChangeAddress()).confidentialAddress,
-  )
+  if (changeAmount > 0) {
+    // add output to receive change
+    const changeAddress = address.fromConfidential(
+      (await getNextChangeAddress()).confidentialAddress,
+    )
 
-  updater.addOutputs([
-    {
-      script: changeAddress.scriptPubKey,
-      amount: changeAmount,
-      asset: pair.from.assetHash,
-      blinderIndex: 0,
-      blindingPublicKey: changeAddress.blindingKey,
-    },
-  ])
+    updater.addOutputs([
+      {
+        script: changeAddress.scriptPubKey,
+        amount: changeAmount,
+        asset: pair.from.assetHash,
+        blinderIndex: 0,
+        blindingPublicKey: changeAddress.blindingKey,
+      },
+    ])
+  }
 
   console.log('pset aka transaction in swap request', pset)
   return { pset, unblindedInputs }
 }
 
+/**
+ * Creates swap request object
+ * @param pair CoinPair
+ * @param preview TDEXv2PreviewTradeResponse
+ * @returns TDEXv2TradeRequest
+ */
 const createSwapRequest = async (
   pair: CoinPair,
   preview: TDEXv2PreviewTradeResponse,
@@ -126,6 +139,12 @@ const createSwapRequest = async (
   return swapRequest
 }
 
+/**
+ * Propose trade to tdex-daemon
+ * @param market TDEXv2Market
+ * @param pair CoinPair
+ * @returns TDEXv2ProposeTradeResponse
+ */
 export const proposeTrade = async (
   market: TDEXv2Market,
   pair: CoinPair,
@@ -134,12 +153,12 @@ export const proposeTrade = async (
   const { dest, from } = pair
   if (!dest.amount || !from.amount) throw new Error('Invalid pair')
 
-  const preview = (
-    await fetchTradePreview({ amount: from.amount, coin: from, market, pair })
-  )[0]
+  // fetch trade preview
+  const preview = (await fetchTradePreview(from.amount, from, market, pair))[0]
   if (!preview) throw new Error('Error on preview')
   console.log('preview before propose request', preview)
 
+  // create trade propose request object
   const tradeProposeRequest: TDEXv2ProposeTradeRequest = {
     feeAmount: preview.feeAmount,
     feeAsset: preview.feeAsset,
@@ -148,6 +167,7 @@ export const proposeTrade = async (
     type: getTradeType(market, pair),
   }
 
+  // request trade proposal and return response
   const tradeProposeResponse: TDEXv2ProposeTradeResponse = await axiosPost(
     market.provider.endpoint + '/v2/trade/propose',
     tradeProposeRequest,
@@ -158,17 +178,29 @@ export const proposeTrade = async (
   return tradeProposeResponse
 }
 
+/**
+ * Complete trade to tdex-daemon
+ * @param propose TDEXv2ProposeTradeResponse
+ * @param market TDEXv2Market
+ * @param transaction: string
+ * @returns TDEXv2CompleteTradeResponse
+ */
 export const completeTrade = async (
   propose: TDEXv2ProposeTradeResponse,
   market: TDEXv2Market,
   transaction: string,
 ): Promise<TDEXv2CompleteTradeResponse> => {
+  // validate proposal was accepted
   if (!propose.swapAccept) throw new Error('Propose not accepted')
+
+  // create complete trade request object
   const completeTradeRequest: TDEXv2CompleteTradeRequest = {
     id: makeid(8),
     acceptId: propose.swapAccept.id,
     transaction,
   }
+
+  // request complete trade and return response
   const completeTradeResponse: TDEXv2CompleteTradeResponse = await axiosPost(
     market.provider.endpoint + '/v2/trade/complete',
     completeTradeRequest,

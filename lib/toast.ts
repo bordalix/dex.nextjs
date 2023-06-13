@@ -1,5 +1,11 @@
 import { toast, setDefaults } from 'bulma-toast'
 
+/**
+ * Shows a toast on the UI
+ * @param err error object or string
+ * @param options optional
+ * @returns void
+ */
 export function showToast(err: any, options = {}) {
   // try to get a string from the error object
   const message = err.message || err.toString()

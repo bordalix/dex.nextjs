@@ -1,4 +1,3 @@
-import { Pset } from 'liquidjs-lib'
 import { Coin } from './types'
 import {
   detectProvider,
@@ -18,6 +17,10 @@ import {
 } from './constants'
 import { defaultNetwork } from './defaults'
 
+/**
+ * Get balance for all assets on Marina wallet
+ * @returns Balance[]
+ */
 export async function getBalances(): Promise<Balance[]> {
   const marina = await getMarinaProvider()
   if (!marina) return []
@@ -26,12 +29,22 @@ export async function getBalances(): Promise<Balance[]> {
   return marina.getBalances(mainAccountIDs)
 }
 
+/**
+ * Get balance for a given asset
+ * @param asset Coin
+ * @param balances Balance[]
+ * @returns number
+ */
 export function getCoinBalance(asset: Coin, balances: Balance[]): number {
   const found = balances.find((a) => a.asset.assetHash === asset.assetHash)
   if (!found || !found.amount) return 0
   return found.amount
 }
 
+/**
+ * Return marina provider object if defined
+ * @returns MarinaProvider | undefined
+ */
 export async function getMarinaProvider(): Promise<MarinaProvider | undefined> {
   if (typeof window === 'undefined') return undefined
   try {
@@ -42,12 +55,20 @@ export async function getMarinaProvider(): Promise<MarinaProvider | undefined> {
   }
 }
 
+/**
+ * Return network on Marina
+ * @returns NetworkString
+ */
 export async function getNetwork(): Promise<NetworkString> {
   const marina = await getMarinaProvider()
   if (marina) return await marina.getNetwork()
   return defaultNetwork
 }
 
+/**
+ * Return all coins for Marina's main account ids
+ * @returns Utxo[]
+ */
 export async function getCoins(): Promise<Utxo[]> {
   const marina = await getMarinaProvider()
   if (!marina) return []
@@ -55,22 +76,34 @@ export async function getCoins(): Promise<Utxo[]> {
   return await marina.getCoins(mainAccountIDs)
 }
 
+/**
+ * Return transactions
+ * @returns Transaction[]
+ */
 export async function getTransactions(): Promise<Transaction[]> {
   const marina = await getMarinaProvider()
   if (!marina) return []
   return marina.getTransactions()
 }
 
-export async function signTx(partialTransaction: string) {
+/**
+ * Sign partial transaction (in base64)
+ * @param partialTransaction string in base64
+ * @returns signed transaction as string in base64
+ */
+export async function signTx(partialTransaction: string): Promise<string> {
   // check for marina
   const marina = await getMarinaProvider()
   if (!marina) throw new Error('Please install Marina')
-
   // sign transaction
-  const ptx = Pset.fromBase64(partialTransaction)
-  return await marina.signTransaction(ptx.toBase64())
+  return await marina.signTransaction(partialTransaction)
 }
 
+/**
+ * Return next address for (optional) given account id
+ * @param accountID optional AccountID
+ * @returns Address
+ */
 export async function getNextAddress(accountID?: AccountID) {
   const marina = await getMarinaProvider()
   if (!marina) throw new Error('No Marina provider found')
@@ -82,6 +115,11 @@ export async function getNextAddress(accountID?: AccountID) {
   return address
 }
 
+/**
+ * Return next change address for (optional) given account id
+ * @param accountID optional AccountID
+ * @returns Address
+ */
 export async function getNextChangeAddress(
   accountID?: AccountID,
 ): Promise<Address> {
@@ -95,6 +133,11 @@ export async function getNextChangeAddress(
   return address
 }
 
+/**
+ * Return Marina's main account id
+ * @param withLegacy optional boolean
+ * @returns AccountID[]
+ */
 export async function getMainAccountIDs(
   withLegacy = true,
 ): Promise<AccountID[]> {
@@ -105,6 +148,11 @@ export async function getMainAccountIDs(
   )
 }
 
+/**
+ * Broadcast given tx (string hex) with Marina
+ * @param rawTxHex tx to be broadcasted, string in hexadecimal
+ * @returns SentTransaction
+ */
 export async function broadcastTx(rawTxHex: string): Promise<SentTransaction> {
   const marina = await getMarinaProvider()
   if (!marina) throw new Error('No Marina provider found')

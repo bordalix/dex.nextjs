@@ -1,28 +1,37 @@
 import type { Utxo } from 'marina-provider'
 import { Coin } from './types'
+import { utxoValue } from './utils'
 
-const utxoValue = (u: Utxo) => u.blindingData?.value || 0
-
-// coin selection strategy: accumulate utxos until value is achieved
-const accumulativeStrategy = (coins: Utxo[], target = 0): Utxo[] => {
+/**
+ * Coin selection strategy: accumulate utxos until target value is achieved
+ * @param utxos Utxo[]
+ * @param target number
+ * @returns Utxo[]
+ */
+const accumulativeStrategy = (utxos: Utxo[], target: number): Utxo[] => {
   let totalValue = 0
-  const selectedCoins = []
+  const selectedUtxos = []
 
   // push coins until target reached
-  for (const coin of coins) {
-    selectedCoins.push(coin)
-    totalValue += utxoValue(coin)
-    if (totalValue >= target) return selectedCoins
+  for (const utxo of utxos) {
+    selectedUtxos.push(utxo)
+    totalValue += utxoValue(utxo)
+    if (totalValue >= target) return selectedUtxos
   }
 
   // not enough funds
   return []
 }
 
-// coin selection strategy: tries to get an exact value (no change)
+/**
+ * Coin selection strategy: tries to get an exact target value (no change)
+ * @param utxos Utxo[]
+ * @param target number
+ * @returns Utxo[]
+ */
 const branchAndBoundStrategy = (
-  coins: Utxo[],
-  target = 0,
+  utxos: Utxo[],
+  target: number,
 ): Utxo[] | undefined => {
   const MAX_TRIES = 1_000
   const selected: number[] = []
@@ -33,7 +42,7 @@ const branchAndBoundStrategy = (
   let utxo_pool_index = 0
 
   // calculate total available value
-  let totalValue = coins.reduce((acc: number, coin) => acc + utxoValue(coin), 0)
+  let totalValue = utxos.reduce((acc: number, utxo) => acc + utxoValue(utxo), 0)
 
   // return undefined if we don't have enough funds
   if (totalValue < target) return
@@ -59,20 +68,20 @@ const branchAndBoundStrategy = (
       // add omitted utxos back before traversing the omission branch of last included utxo
       utxo_pool_index -= 1
       while (utxo_pool_index > selected[selected.length - 1]) {
-        totalValue += utxoValue(coins[utxo_pool_index])
+        totalValue += utxoValue(utxos[utxo_pool_index])
         utxo_pool_index -= 1
       }
 
       // remove last included utxo from selected list
-      currValue -= utxoValue(coins[utxo_pool_index])
+      currValue -= utxoValue(utxos[utxo_pool_index])
       if (currValue < 0) return // something went wrong
       selected.pop()
     } else {
       // continue on this branch, add the next utxo to selected list
-      let coin = coins[utxo_pool_index]
+      let utxo = utxos[utxo_pool_index]
 
       // remove this utxo from total available amount
-      totalValue -= utxoValue(coin)
+      totalValue -= utxoValue(utxo)
       if (totalValue < 0) return // something went wrong
 
       // if this utxo is the first one or
@@ -82,7 +91,7 @@ const branchAndBoundStrategy = (
         utxo_pool_index - 1 === selected[selected.length - 1]
       ) {
         selected.push(utxo_pool_index)
-        currValue += utxoValue(coin)
+        currValue += utxoValue(utxo)
       }
     }
 
@@ -97,12 +106,20 @@ const branchAndBoundStrategy = (
   if (selected.length === 0) return
 
   // return the selected utxos
-  return selected.map((i) => coins[i])
+  return selected.map((i) => utxos[i])
 }
 
-// select coins for given amount, with respective blinding private key
+/**
+ * Select coins for a given amount, with respective blinding private key
+ * @param utxos Utxo[]
+ * @param coin Coin
+ * @returns Utxo[]
+ */
 export function selectCoins(utxos: Utxo[], coin: Coin): Utxo[] {
+  // validate coin
   const { amount, assetHash } = coin
+  if (!amount) return []
+
   // sort utxos in descending order of value: will decrease number of inputs
   // (and fees) but will increase utxo fragmentation
   const _utxos = utxos
