@@ -153,9 +153,10 @@ export function isTDEXv2ProposeTradeResponse(
 }
 
 export interface TDEXv2CompleteTradeRequest {
-  id: string
-  acceptId: string
-  transaction: string
+  swapComplete: {
+    acceptId: string
+    transaction: string
+  }
 }
 
 export interface TDEXv2CompleteTradeResponse {

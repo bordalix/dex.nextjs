@@ -28,7 +28,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <meta content="/images/og/card1200.png" property="twitter:image" />
           <meta property="og:type" content="website" />
           <meta content="summary_large_image" name="twitter:card" />
-          <link rel="shortcut icon" href="/images/favicon.png" />
+          <link rel="icon" href="/favicon.png" />
         </Head>
         <Component {...pageProps} />
       </TradeProvider>

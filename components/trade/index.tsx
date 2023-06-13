@@ -167,21 +167,17 @@ export default function Trade() {
       setTradeStatus(TradeStatus.PROPOSING)
 
       const propose = await proposeTrade(market, pair)
-      if (!propose.swapAccept) throw new Error('TDEX swap not accepted')
-      console.log(
-        'transaction returned on swapAccept',
-        Pset.fromBase64(propose.swapAccept.transaction),
-      )
+      if (!propose.swapAccept) throw TradeStatusMessage.SwapNotAccepted
 
       // sign tx
       setTradeStatus(TradeStatus.CONFIRM)
 
       const signedTx = await signTx(propose.swapAccept.transaction)
-      if (!signedTx) throw new Error('Error on tx signing')
+      if (!signedTx) throw TradeStatusMessage.ErrorSigning
 
       // complete trade
       const completeResponse = await completeTrade(propose, market, signedTx)
-      if (!completeResponse.txid) throw new Error('Error completing TDEX swap')
+      if (!completeResponse.txid) throw TradeStatusMessage.ErrorCompleting
 
       // set values and return
       setTxid(completeResponse.txid)

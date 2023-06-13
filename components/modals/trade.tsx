@@ -87,9 +87,7 @@ const TradeModal = ({ close, error, pair, status, txid }: TradeModalProps) => {
             <>
               <Icon status="success" />
               <Title>Trade Completed</Title>
-              <ExplorerLink
-                url={'https://blockstream.info/liquid/tx/' + txid}
-              />
+              <ExplorerLink txid={txid} />
               <CloseButton />
             </>
           )}

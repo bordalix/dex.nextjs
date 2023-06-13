@@ -9,12 +9,15 @@ export const enum NetworkNames {
 }
 
 export const enum TradeStatusMessage {
-  Trade = 'Trade',
-  EnterAmount = 'Enter an amount',
-  InvalidPair = 'Pair not supported',
   ConnectWallet = 'Connect wallet',
+  EnterAmount = 'Enter an amount',
+  ErrorCompleting = 'Error completing trade',
   ErrorPreview = 'Preview not available',
+  ErrorSigning = 'Error signing',
+  InvalidPair = 'Pair not supported',
   NoBalance = 'Not enough balance on Marina',
+  SwapNotAccepted = 'TDEX swap not accepted',
+  Trade = 'Trade',
 }
 
 export const enum TradeStatus {

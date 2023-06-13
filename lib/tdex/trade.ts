@@ -19,6 +19,12 @@ import {
 import { selectCoins } from 'lib/coinSelection'
 import { makeid, utxoValue } from 'lib/utils'
 
+/**
+ * Uses axios to post to url
+ * @param endpoint string
+ * @param payload TDEXv2ProposeTradeRequest | TDEXv2CompleteTradeRequest
+ * @returns AxiosResponse
+ */
 const axiosPost = async (
   endpoint: string,
   payload: TDEXv2ProposeTradeRequest | TDEXv2CompleteTradeRequest,
@@ -67,8 +73,12 @@ const makePset = async (
         index: 0,
         asset: utxo.blindingData.asset,
         amount: utxo.blindingData.value.toString(),
-        assetBlinder: utxo.blindingData.assetBlindingFactor,
-        amountBlinder: utxo.blindingData.valueBlindingFactor,
+        assetBlinder: Buffer.from(utxo.blindingData.assetBlindingFactor, 'hex')
+          .reverse()
+          .toString('hex'),
+        amountBlinder: Buffer.from(utxo.blindingData.valueBlindingFactor, 'hex')
+          .reverse()
+          .toString('hex'),
       })
     }
   }
@@ -105,7 +115,6 @@ const makePset = async (
     ])
   }
 
-  console.log('pset aka transaction in swap request', pset)
   return { pset, unblindedInputs }
 }
 
@@ -134,7 +143,6 @@ const createSwapRequest = async (
     transaction: pset.toBase64(),
     unblindedInputs,
   }
-  console.log('swapRequest', swapRequest)
 
   return swapRequest
 }
@@ -156,7 +164,6 @@ export const proposeTrade = async (
   // fetch trade preview
   const preview = (await fetchTradePreview(from.amount, from, market, pair))[0]
   if (!preview) throw new Error('Error on preview')
-  console.log('preview before propose request', preview)
 
   // create trade propose request object
   const tradeProposeRequest: TDEXv2ProposeTradeRequest = {
@@ -195,9 +202,10 @@ export const completeTrade = async (
 
   // create complete trade request object
   const completeTradeRequest: TDEXv2CompleteTradeRequest = {
-    id: makeid(8),
-    acceptId: propose.swapAccept.id,
-    transaction,
+    swapComplete: {
+      acceptId: propose.swapAccept.id,
+      transaction,
+    },
   }
 
   // request complete trade and return response
