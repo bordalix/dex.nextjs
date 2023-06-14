@@ -14,10 +14,9 @@ import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
 import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
 import { signTx } from 'lib/marina'
-import { fetchTradePreview } from 'lib/tdex/preview'
+import { tradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
 import { completeTrade, proposeTrade } from 'lib/tdex/trade'
-import { Pset } from 'liquidjs-lib'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -101,12 +100,7 @@ export default function Trade() {
       } else {
         // make a preview to find out other coin amount
         const coin = which === 'dest' ? pair.dest : pair.from
-        const preview = (await fetchTradePreview(amount, coin, market, pair))[0]
-
-        if (!preview) {
-          showToast(TradeStatusMessage.ErrorPreview)
-          throw TradeStatusMessage.ErrorPreview
-        }
+        const preview = await tradePreview(amount, coin, market, pair)
 
         // calculate amount for the other coin
         const otherAmount = Number(preview.amount)

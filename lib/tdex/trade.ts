@@ -2,7 +2,7 @@ import axios from 'axios'
 import { Creator, Pset, Transaction, Updater, address } from 'liquidjs-lib'
 import { getCoins, getNextAddress, getNextChangeAddress } from 'lib/marina'
 import { getTradeType } from './market'
-import { fetchTradePreview } from './preview'
+import { tradePreview } from './preview'
 import {
   TDEXv2PreviewTradeResponse,
   TDEXv2TradeRequest,
@@ -162,8 +162,7 @@ export const proposeTrade = async (
   if (!dest.amount || !from.amount) throw new Error('Invalid pair')
 
   // fetch trade preview
-  const preview = (await fetchTradePreview(from.amount, from, market, pair))[0]
-  if (!preview) throw new Error('Error on preview')
+  const preview = await tradePreview(from.amount, from, market, pair)
 
   // create trade propose request object
   const tradeProposeRequest: TDEXv2ProposeTradeRequest = {

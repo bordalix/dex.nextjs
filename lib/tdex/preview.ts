@@ -4,24 +4,25 @@ import {
   CoinPair,
   TDEXv2Market,
   TDEXv2PreviewTradeRequest,
+  TDEXv2PreviewTradeResponse,
   isTDEXv2PreviewTradeResponse,
 } from 'lib/types'
 import { getTradeType } from './market'
 
 /**
- * Get a list of markets from a given provider
+ * Returns an array of trade previews
  * @param amount number
  * @param coin  Coin
  * @param market TDEXv2Market
  * @param pair CoinPair
- * @returns an array of markets
+ * @returns an array of trade previews
  */
-export async function fetchTradePreview(
+const fetchTradePreview = async (
   amount: number,
   coin: Coin,
   market: TDEXv2Market,
   pair: CoinPair,
-) {
+): Promise<TDEXv2PreviewTradeResponse[]> => {
   const { dest, from } = pair
   const otherCoin = coin.assetHash === from.assetHash ? dest : from
   const type = getTradeType(market, pair)
@@ -37,4 +38,23 @@ export async function fetchTradePreview(
   const res = (await axios.post(url, trade, opt)).data.previews
   if (!Array.isArray(res)) throw new Error('Invalid trade/preview response')
   return res.filter(isTDEXv2PreviewTradeResponse)
+}
+
+/**
+ * Get a trade preview
+ * @param amount number
+ * @param coin  Coin
+ * @param market TDEXv2Market
+ * @param pair CoinPair
+ * @returns a trade preview
+ */
+export const tradePreview = async (
+  amount: number,
+  coin: Coin,
+  market: TDEXv2Market,
+  pair: CoinPair,
+): Promise<TDEXv2PreviewTradeResponse> => {
+  const previews = await fetchTradePreview(amount, coin, market, pair)
+  if (!previews || !previews[0]) throw new Error('Error on preview')
+  return previews[0]
 }
