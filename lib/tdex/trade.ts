@@ -58,8 +58,12 @@ const makePset = async (
   const amountToSend = pair.from.amount ?? 0
   const changeAmount = utxosAmount - amountToSend
 
+  const reverseFactor = (hex: string) =>
+    Buffer.from(hex, 'hex').reverse().toString('hex')
+
   // add inputs to pset
-  for (const utxo of utxos) {
+  for (let i = 0; i < utxos.length; i++) {
+    const utxo = utxos[i]
     updater.addInputs([
       {
         txid: utxo.txid,
@@ -70,15 +74,11 @@ const makePset = async (
     ])
     if (utxo.blindingData) {
       unblindedInputs.push({
-        index: 0,
+        index: i,
         asset: utxo.blindingData.asset,
         amount: utxo.blindingData.value.toString(),
-        assetBlinder: Buffer.from(utxo.blindingData.assetBlindingFactor, 'hex')
-          .reverse()
-          .toString('hex'),
-        amountBlinder: Buffer.from(utxo.blindingData.valueBlindingFactor, 'hex')
-          .reverse()
-          .toString('hex'),
+        assetBlinder: reverseFactor(utxo.blindingData.assetBlindingFactor),
+        amountBlinder: reverseFactor(utxo.blindingData.valueBlindingFactor),
       })
     }
   }
