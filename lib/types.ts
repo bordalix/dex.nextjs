@@ -21,6 +21,11 @@ export interface TDEXv2Market {
   price?: TDEXv2MarketPrice
 }
 
+/**
+ * Checks if given market is a TDEXv2Market
+ * @param market
+ * @returns market is TDEXv2Market
+ */
 export function isTDEXv2Market(market: any): market is TDEXv2Market {
   return (
     typeof market === 'object' &&
@@ -34,6 +39,11 @@ export interface TDEXv2Provider {
   endpoint: string
 }
 
+/**
+ * Checks if given provider is a TDEXv2Provider
+ * @param provider
+ * @returns provider is TDEXv2Provider
+ */
 export function isTDEXv2Provider(provider: any): provider is TDEXv2Provider {
   return (
     typeof provider === 'object' &&
@@ -47,6 +57,11 @@ export interface TDEXv2MarketPrice {
   minTradableAmount: string
 }
 
+/**
+ * Checks if given price is a TDEXv2MarketPrice
+ * @param price
+ * @returns price is TDEXv2MarketPrice
+ */
 export function isTDEXv2MarketPrice(price: any): price is TDEXv2MarketPrice {
   return (
     typeof price === 'object' &&
@@ -80,6 +95,11 @@ export interface TDEXv2PreviewTradeResponse {
   price: { basePrice: number; quotePrice: number }
 }
 
+/**
+ * Checks if given response is a TDEXv2PreviewTradeResponse
+ * @param response
+ * @returns response is TDEXv2PreviewTradeResponse
+ */
 export function isTDEXv2PreviewTradeResponse(
   resp: any,
 ): resp is TDEXv2PreviewTradeResponse {
@@ -146,9 +166,14 @@ export interface TDEXv2ProposeTradeResponse {
   expiryTimeUnix: string
 }
 
+/**
+ * Checks if given response is a TDEXv2ProposeTradeResponse
+ * @param response
+ * @returns response is TDEXv2ProposeTradeResponse
+ */
 export function isTDEXv2ProposeTradeResponse(
   resp: any,
-): resp is TDEXv2PreviewTradeResponse {
+): resp is TDEXv2ProposeTradeResponse {
   return typeof resp === 'object' && typeof resp.expiryTimeUnix === 'string'
 }
 
@@ -164,6 +189,11 @@ export interface TDEXv2CompleteTradeResponse {
   swapFail: TDEXv2SwapFail
 }
 
+/**
+ * Checks if given response is a TDEXv2CompleteTradeResponse
+ * @param response
+ * @returns response is TDEXv2CompleteTradeResponse
+ */
 export function isTDEXv2CompleteTradeResponse(
   resp: any,
 ): resp is TDEXv2CompleteTradeResponse {

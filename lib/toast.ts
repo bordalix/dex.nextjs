@@ -18,7 +18,7 @@ export function showToast(err: any, options = {}) {
     dismissible: true,
     duration: 2000,
     opacity: 1,
-    position: 'top-right',
+    position: 'top-left',
     type: 'is-warning',
   })
 
