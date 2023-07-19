@@ -58,6 +58,7 @@ const makePset = async (
   const amountToSend = pair.from.amount ?? 0
   const changeAmount = utxosAmount - amountToSend
 
+  // util to reverse asset and value blinding factors
   const reverseFactor = (hex: string) =>
     Buffer.from(hex, 'hex').reverse().toString('hex')
 
@@ -129,7 +130,7 @@ const createSwapRequest = async (
   preview: TDEXv2PreviewTradeResponse,
 ): Promise<TDEXv2TradeRequest> => {
   // validate pair
-  if (!pair.from.amount) throw new Error('No pair from amount')
+  if (!pair.from.amount) throw new Error('No pair.from amount')
 
   const { pset, unblindedInputs } = await makePset(pair, preview)
 

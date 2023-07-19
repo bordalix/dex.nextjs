@@ -146,6 +146,7 @@ export default function Trade() {
     closeModal(ModalIds.Trade)
   }
 
+  // when user clicks Trade button, advance with trade
   const onTrade = async () => {
     try {
       // if it's an invalid pair throw error
@@ -157,17 +158,16 @@ export default function Trade() {
       // check balance
       if (!enoughBalance(pair.from)) throw TradeStatusMessage.NoBalance
 
+      // open trade modal
       openModal(ModalIds.Trade)
 
       // propose trade
       setTradeStatus(TradeStatus.PROPOSING)
-
       const propose = await proposeTrade(market, pair)
       if (!propose.swapAccept) throw TradeStatusMessage.SwapNotAccepted
 
       // sign tx
       setTradeStatus(TradeStatus.CONFIRM)
-
       const signedTx = await signTx(propose.swapAccept.transaction)
       if (!signedTx) throw TradeStatusMessage.ErrorSigning
 
