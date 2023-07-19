@@ -8,6 +8,7 @@ import {
   isTDEXv2PreviewTradeResponse,
 } from 'lib/types'
 import { getTradeType } from './market'
+import { TradeStatusMessage } from 'lib/constants'
 
 /**
  * Returns an array of trade previews
@@ -54,7 +55,11 @@ export const tradePreview = async (
   market: TDEXv2Market,
   pair: CoinPair,
 ): Promise<TDEXv2PreviewTradeResponse> => {
-  const previews = await fetchTradePreview(amount, coin, market, pair)
-  if (!previews || !previews[0]) throw new Error('Error on preview')
-  return previews[0]
+  try {
+    const previews = await fetchTradePreview(amount, coin, market, pair)
+    if (!previews || !previews[0]) throw ''
+    return previews[0]
+  } catch {
+    throw TradeStatusMessage.ErrorPreview
+  }
 }

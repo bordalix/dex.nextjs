@@ -57,6 +57,7 @@ export default function Trade() {
     if (market) {
       setBalanceError(!enoughBalance(pair.from))
     }
+    setErrorPreview(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market, pair])
 
@@ -119,8 +120,9 @@ export default function Trade() {
         )
       }
     } catch (err) {
+      if (err === TradeStatusMessage.ErrorPreview) setErrorPreview(true)
       // show error on a toast
-      showToast(err)
+      else showToast(err)
     }
   }
 
