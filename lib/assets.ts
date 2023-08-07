@@ -1,5 +1,6 @@
 import { Coin } from './types'
 import { NetworkNames } from './constants'
+import { defaultNetwork } from './defaults'
 
 // Note: Coin is an Asset with imgSrc and not mandatory amount
 interface IAssetHash {
@@ -67,7 +68,7 @@ const ProtoAssets: Record<string, Omit<Coin, 'assetHash'>> = {
  * @param network network name
  * @returns array of coins
  */
-export const supportedAssets = (network: NetworkNames): Coin[] => {
+export const supportedAssets = (network = defaultNetwork): Coin[] => {
   const assets = []
   for (const [key, asset] of Object.entries(ProtoAssets)) {
     if (AssetHashes[key][network]) {
