@@ -11,6 +11,8 @@ const AssetHashes: Record<string, IAssetHash> = {
   FUJI: {
     [NetworkNames.TESTNET]:
       '0d86b2f6a8c3b02a8c7c8836b83a081e68b7e2b4bcdfc58981fc5486f59f7518',
+    [NetworkNames.MAINNET]:
+      '518c0b351f5731f5d40cf6ad444d1c147eda1cdf8c867185c58a526fb02ad806',
   },
   LBTC: {
     [NetworkNames.MAINNET]:
@@ -86,6 +88,6 @@ export const findAssetByTicker = (
   network: NetworkNames,
 ): Coin => {
   const asset = supportedAssets(network).find((a) => a.ticker === ticker)
-  if (!asset) throw new Error('unknown ticker')
+  if (!asset) throw new Error(`unknown ticker ${ticker}`)
   return asset
 }

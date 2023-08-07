@@ -16,6 +16,7 @@ export const enum TradeStatusMessage {
   ErrorSigning = 'Error signing',
   InvalidPair = 'Pair not supported',
   NoBalance = 'Not enough balance on Marina',
+  NoProviders = 'No TDEX provider found',
   SwapNotAccepted = 'TDEX swap not accepted',
   Trade = 'Trade',
 }

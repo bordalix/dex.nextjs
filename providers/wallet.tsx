@@ -9,7 +9,7 @@ interface WalletContextProps {
   connected: boolean
   enoughBalance: (coin: Coin) => boolean
   marina: MarinaProvider | undefined
-  network: NetworkNames
+  network: NetworkNames | undefined
   setConnected: (arg0: boolean) => void
 }
 
@@ -17,7 +17,7 @@ export const WalletContext = createContext<WalletContextProps>({
   connected: false,
   enoughBalance: () => false,
   marina: undefined,
-  network: defaultNetwork,
+  network: undefined,
   setConnected: () => {},
 })
 
@@ -28,7 +28,7 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   const [balances, setBalances] = useState<Balance[]>([])
   const [connected, setConnected] = useState(false)
   const [marina, setMarina] = useState<MarinaProvider>()
-  const [network, setNetwork] = useState<NetworkString>(defaultNetwork)
+  const [network, setNetwork] = useState<NetworkString>()
 
   const updateBalances = async () => setBalances(await getBalances())
   const updateNetwork = async () => setNetwork(await getNetwork())

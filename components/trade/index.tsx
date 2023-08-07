@@ -20,7 +20,7 @@ import { completeTrade, proposeTrade } from 'lib/tdex/trade'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
-  const { loading, markets } = useContext(TradeContext)
+  const { loading, markets, providers } = useContext(TradeContext)
 
   const [balanceError, setBalanceError] = useState(false)
   const [errorPreview, setErrorPreview] = useState(false)
@@ -190,6 +190,8 @@ export default function Trade() {
   // manage button status and message
   const TradeButtonMessage = !connected
     ? TradeStatusMessage.ConnectWallet
+    : !providers.length
+    ? TradeStatusMessage.NoProviders
     : !market
     ? TradeStatusMessage.InvalidPair
     : errorPreview
