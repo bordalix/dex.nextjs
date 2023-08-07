@@ -11,7 +11,7 @@ export default function TradeButton({
   onClick,
   status,
 }: TradeButtonProps) {
-  const btnStyle = 'button is-primary is-medium is-fullwidth mt-4'
+  const btnStyle = 'button is-primary is-medium is-fullwidth mt-4 wrapped'
   const disabled = status !== TradeStatusMessage.Trade
   return (
     <button

@@ -40,6 +40,12 @@ $modal-background-background-color: 'transparent';
   }
 }
 
+.wrapped {
+  height: auto;
+  padding: 10px;
+  white-space: normal;
+}
+
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
