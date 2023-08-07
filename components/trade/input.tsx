@@ -35,7 +35,7 @@ export default function CoinInput({
   const { iconSrc, ticker } = coin
 
   return (
-    <div className="columns m-0 has-background-dark">
+    <div className="columns is-mobile m-0 has-background-dark">
       <div className="column pl-4 pt-4 is-half">
         <a onClick={openAssetsModal}>
           <div className="is-flex is-align-items-center">
