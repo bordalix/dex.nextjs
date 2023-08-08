@@ -14,6 +14,7 @@ export const enum TradeStatusMessage {
   ErrorCompleting = 'Error completing trade',
   ErrorPreview = 'Preview not available',
   ErrorSigning = 'Error signing',
+  InvalidAmount = 'Invalid amount',
   InvalidPair = 'Pair not supported',
   NoBalance = 'Not enough balance on Marina',
   NoProviders = 'No TDEX provider found',

@@ -15,15 +15,17 @@ export default function CoinInput({
   openAssetsModal,
 }: CoinInputProps): any {
   const [value, setValue] = useState('')
+  const [invalid, setInvalid] = useState(false)
 
   // handle change of value on input form
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     setValue(value)
-    if (value.match(/\.$/)) return
-    const satoshis =
-      value === '' ? undefined : toSatoshis(Number(value), coin.precision)
-    setAmount(satoshis)
+    setInvalid(isNaN(Number(value)))
+    const amount = isNaN(Number(value)) || value === ''
+      ? undefined
+      : toSatoshis(Number(value), coin.precision)
+    setAmount(amount)
   }
 
   useEffect(() => {
@@ -46,7 +48,9 @@ export default function CoinInput({
       </div>
       <div className="column p-0">
         <input
-          className="input is-large has-background-dark has-text-white has-text-right"
+          className={`input is-large has-background-dark has-text-right has-text-${
+            invalid ? 'danger' : 'white'
+          }`}
           onChange={handleChange}
           placeholder="0.00"
           type="text"

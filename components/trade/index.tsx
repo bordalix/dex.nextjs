@@ -92,12 +92,19 @@ export default function Trade() {
       // if it's an invalid pair, return
       if (!market) throw TradeStatusMessage.InvalidPair
 
-      // if amount is undefined or zero, reset all amounts
+      // if amount is undefined or zero, reset amount of other input
       if (!amount) {
-        setPair({
-          dest: { ...pair.dest, amount },
-          from: { ...pair.from, amount },
-        })
+        setPair(
+          which === 'dest'
+            ? {
+                dest: { ...pair.dest },
+                from: { ...pair.from, amount },
+              }
+            : {
+                dest: { ...pair.dest, amount },
+                from: { ...pair.from },
+              },
+        )
       } else {
         // make a preview to find out other coin amount
         const coin = which === 'dest' ? pair.dest : pair.from
@@ -200,6 +207,8 @@ export default function Trade() {
     ? TradeStatusMessage.NoBalance
     : !pair.from.amount
     ? TradeStatusMessage.EnterAmount
+    : !pair.dest.amount
+    ? TradeStatusMessage.InvalidAmount
     : TradeStatusMessage.Trade
 
   return (
