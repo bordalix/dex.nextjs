@@ -10,6 +10,7 @@ import { TDEXv2Market, TDEXv2Provider } from 'lib/types'
 import { fetchMarketsFromProvider, getMarketPrice } from 'lib/tdex/market'
 import { getProvidersFromRegistry } from 'lib/tdex/registry'
 import { showToast } from 'lib/toast'
+import { TradeStatusMessage } from 'lib/constants'
 
 interface TradeContextProps {
   loading: boolean
@@ -42,14 +43,20 @@ export const TradeProvider = ({ children }: TradeProviderProps) => {
         setLoading(true)
         const markets: TDEXv2Market[] = []
         const providers = await getProvidersFromRegistry(network)
+        if (providers.length === 0) throw TradeStatusMessage.NoProviders
         for (const provider of providers) {
-          for (let market of await fetchMarketsFromProvider(provider)) {
-            markets.push({
-              ...market,
-              price: await getMarketPrice(market),
-            })
-          }
+          try {
+            for (let market of await fetchMarketsFromProvider(provider)) {
+              try {
+                markets.push({
+                  ...market,
+                  price: await getMarketPrice(market),
+                })
+              } catch (ignore) {}
+            }
+          } catch (ignore) {}
         }
+        if (markets.length === 0) throw TradeStatusMessage.NoMarkets
         setMarkets(markets)
         setProviders(providers)
       } catch (err) {
