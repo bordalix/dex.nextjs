@@ -13,7 +13,7 @@ const AssetHashes: Record<string, IAssetHash> = {
     [NetworkNames.TESTNET]:
       '0d86b2f6a8c3b02a8c7c8836b83a081e68b7e2b4bcdfc58981fc5486f59f7518',
     [NetworkNames.MAINNET]:
-      '518c0b351f5731f5d40cf6ad444d1c147eda1cdf8c867185c58a526fb02ad806',
+      '0dea022a8a25abb128b42b0f8e98532bc8bd74f8a77dc81251afcc13168acef7',
   },
   LBTC: {
     [NetworkNames.MAINNET]:
