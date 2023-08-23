@@ -17,6 +17,21 @@ function getRegistryURL(network: NetworkNames): string {
   return Registries[network] || Registries[NetworkNames.MAINNET]
 }
 
+async function respondsWithCorrectVersion(
+  provider: TDEXv2Provider,
+): Promise<boolean> {
+  try {
+    const url = provider.endpoint + '/v1/info'
+    const res = await axios.post(url, { list_services: '' })
+    return res.data.result.listServicesResponse.service
+      .map((s: { name: string }) => s.name)
+      .includes('tdex.v2.TradeService')
+  } catch (error) {
+    console.error(error)
+    return false
+  }
+}
+
 /**
  * Get a list of registered providers from TDEX_REGISTRY_URL
  * @param network network name
@@ -27,5 +42,5 @@ export async function getProvidersFromRegistry(
 ): Promise<TDEXv2Provider[]> {
   const res = (await axios.get(getRegistryURL(network))).data
   if (!Array.isArray(res)) throw TradeStatusMessage.InvalidRegistry
-  return res.filter(isTDEXv2Provider)
+  return res.filter(isTDEXv2Provider).filter(respondsWithCorrectVersion)
 }
