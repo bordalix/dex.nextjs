@@ -239,18 +239,23 @@ export default function Trade() {
                 status={TradeButtonMessage}
               />
             </form>
-            {network && <p className="is-size-7">Network: {network}</p>}
-            <div className="is-flex is-justify-content-space-between">
-              <p className="is-size-7">
-                Provider: <a href={provider?.endpoint}>{provider?.endpoint}</a>
-              </p>
-              <p
-                className="is-size-7 is-clickable is-action"
-                onClick={() => openModal(ModalIds.ProviderList)}
-              >
-                Change
-              </p>
-            </div>
+            {connected && network && (
+              <p className="is-size-7">Network: {network}</p>
+            )}
+            {connected && providers.length > 0 && (
+              <div className="is-flex is-justify-content-space-between">
+                <p className="is-size-7">
+                  Provider:{' '}
+                  <a href={provider?.endpoint}>{provider?.endpoint}</a>
+                </p>
+                <p
+                  className="is-size-7 is-clickable is-action"
+                  onClick={() => openModal(ModalIds.ProviderList)}
+                >
+                  Change
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <AssetListModal
