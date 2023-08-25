@@ -22,7 +22,7 @@ const AssetListModal = ({
   const { markets } = useContext(TradeContext)
 
   const handleClick = (a: Coin) => {
-    closeModal(ModalIds.AssetsList)
+    closeModal(ModalIds.AssetList)
     if (side === 'dest') setDestAsset(a)
     if (side === 'from') setFromAsset(a)
   }
@@ -38,7 +38,7 @@ const AssetListModal = ({
   )
 
   return (
-    <Modal id={ModalIds.AssetsList}>
+    <Modal id={ModalIds.AssetList}>
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select an asset</h1>

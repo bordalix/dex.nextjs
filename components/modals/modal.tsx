@@ -8,7 +8,8 @@ const closeModals = () => {
 }
 
 export enum ModalIds {
-  AssetsList = 'assets-list-modal',
+  AssetList = 'asset-list-modal',
+  ProviderList = 'provider-list-modal',
   Trade = 'trade-modal',
 }
 
