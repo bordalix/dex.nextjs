@@ -92,8 +92,13 @@ function totalMarketFees(
 export function getBestMarket(
   markets: TDEXv2Market[],
   pair: CoinPair,
+  useProvider?: TDEXv2Provider,
 ): TDEXv2Market | undefined {
   const validMarkets = markets
+    // return markets filtered by provider if useProvider is defined
+    .filter((market) =>
+      useProvider ? market.provider.endpoint === useProvider.endpoint : true,
+    )
     // find markets for this pair
     .filter(
       (market) =>

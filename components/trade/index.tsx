@@ -1,6 +1,6 @@
 import CoinInput from './input'
 import { useContext, useEffect, useState } from 'react'
-import { Coin, CoinPair, TDEXv2Market } from '../../lib/types'
+import { Coin, CoinPair, TDEXv2Market, TDEXv2Provider } from '../../lib/types'
 import Arrow from './arrow'
 import TradeButton from './button'
 import { TradeStatusMessage } from 'lib/constants'
@@ -17,6 +17,7 @@ import { signTx } from 'lib/marina'
 import { tradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
 import { completeTrade, proposeTrade } from 'lib/tdex/trade'
+import ProviderListModal from 'components/modals/providerList'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -24,6 +25,7 @@ export default function Trade() {
 
   const [balanceError, setBalanceError] = useState(false)
   const [errorPreview, setErrorPreview] = useState(false)
+  const [useProvider, setUseProvider] = useState<TDEXv2Provider | undefined>()
   const [market, setMarket] = useState<TDEXv2Market>()
   const [side, setSide] = useState('from')
   const [tradeError, setTradeError] = useState<string>()
@@ -49,8 +51,8 @@ export default function Trade() {
 
   // update best market on changes
   useEffect(() => {
-    setMarket(getBestMarket(markets, pair))
-  }, [markets, pair])
+    setMarket(getBestMarket(markets, pair, useProvider))
+  }, [markets, pair, useProvider])
 
   // update balance errors
   useEffect(() => {
@@ -143,7 +145,7 @@ export default function Trade() {
   // variable side informs wich side clicked to open modal
   const openAssetsModal = (side: string) => {
     setSide(side)
-    openModal(ModalIds.AssetsList)
+    openModal(ModalIds.AssetList)
   }
 
   // when closing trade modal reset amounts and trade status
@@ -194,6 +196,8 @@ export default function Trade() {
     }
   }
 
+  const provider = market?.provider ?? useProvider
+
   // manage button status and message
   const TradeButtonMessage = !connected
     ? TradeStatusMessage.ConnectWallet
@@ -235,14 +239,22 @@ export default function Trade() {
                 status={TradeButtonMessage}
               />
             </form>
-            {network && <p className="is-size-7">Network: {network}</p>}
-            {market && (
-              <p className="is-size-7">
-                Provider:{' '}
-                <a href={market.provider.endpoint}>
-                  {market.provider.endpoint}
-                </a>
-              </p>
+            {connected && network && (
+              <p className="is-size-7">Network: {network}</p>
+            )}
+            {connected && providers.length > 0 && (
+              <div className="is-flex is-justify-content-space-between">
+                <p className="is-size-7">
+                  Provider:{' '}
+                  <a href={provider?.endpoint}>{provider?.endpoint}</a>
+                </p>
+                <p
+                  className="is-size-7 is-clickable is-action"
+                  onClick={() => openModal(ModalIds.ProviderList)}
+                >
+                  Change
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -257,6 +269,11 @@ export default function Trade() {
           pair={pair}
           status={tradeStatus}
           txid={txid}
+        />
+        <ProviderListModal
+          providers={providers}
+          useProvider={useProvider}
+          setUseProvider={setUseProvider}
         />
       </div>
     </div>
