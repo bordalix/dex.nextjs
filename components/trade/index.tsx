@@ -244,7 +244,7 @@ export default function Trade() {
             )}
             {connected && providers.length > 0 && (
               <div className="is-flex is-justify-content-space-between">
-                <p className="is-size-7">
+                <p className="is-size-7 is-ellipsis">
                   Provider:{' '}
                   <a href={provider?.endpoint}>{provider?.endpoint}</a>
                 </p>

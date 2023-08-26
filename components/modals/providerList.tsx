@@ -61,13 +61,13 @@ const ProviderListModal = ({
   }
 
   const ProviderLine = ({ provider }: any) => (
-    <div className="is-flex">
-      <p>
+    <div className="is-flex is-clickable" style={{ marginLeft: -32 }}>
+      <p style={{ minWidth: 32 }}>
         <IconForProvider provider={provider} />
       </p>
-      <div className="is-clickable" onClick={() => handleClick(provider)}>
+      <div onClick={() => handleClick(provider)} style={{ width: '100%' }}>
         <p className="has-text-white">{provider.name}</p>
-        <p className="is-size-7 mb-4">{provider.endpoint}</p>
+        <p className="is-size-7 mb-4 is-ellipsis">{provider.endpoint}</p>
       </div>
     </div>
   )
@@ -79,11 +79,9 @@ const ProviderListModal = ({
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select a provider</h1>
-          <div style={{ marginLeft: '-32px' }}>
-            {[fakeProvider, ...providers].map((provider, index) => (
-              <ProviderLine provider={provider} key={index} />
-            ))}
-          </div>
+          {[fakeProvider, ...providers].map((provider, index) => (
+            <ProviderLine provider={provider} key={index} />
+          ))}
         </div>
       </div>
     </Modal>

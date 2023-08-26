@@ -59,3 +59,10 @@ p.is-action {
   color: $grey-dark;
   padding: 0 4px;
 }
+
+.is-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
