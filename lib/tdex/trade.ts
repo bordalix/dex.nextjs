@@ -29,9 +29,13 @@ const axiosPost = async (
   endpoint: string,
   payload: TDEXv2ProposeTradeRequest | TDEXv2CompleteTradeRequest,
 ) => {
-  const opt = { headers: { 'Content-Type': 'application/json' } }
-  const res = await axios.post(endpoint, payload, opt)
-  return res.data
+  try {
+    const opt = { headers: { 'Content-Type': 'application/json' } }
+    const res = await axios.post(endpoint, payload, opt)
+    return res.data
+  } catch (err) {
+    console.error('axios error', err)
+  }
 }
 
 /**
