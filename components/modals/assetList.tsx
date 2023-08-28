@@ -18,7 +18,7 @@ const AssetListModal = ({
   setFromAsset,
   side,
 }: AssetListModalProps) => {
-  const { network } = useContext(WalletContext)
+  const { connected, network } = useContext(WalletContext)
   const { markets } = useContext(TradeContext)
 
   const handleClick = (a: Coin) => {
@@ -42,16 +42,18 @@ const AssetListModal = ({
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select an asset</h1>
-          {listOfAssets.map((a, i) => (
-            <div
-              className="is-flex is-align-items-center my-4 is-clickable"
-              onClick={() => handleClick(a)}
-              key={i}
-            >
-              <Image src={a.iconSrc} alt="coin logo" height={32} width={32} />
-              <p className="subtitle has-text-white ml-4">{a.name}</p>
-            </div>
-          ))}
+          {!connected && <p>Connect wallet to see available assets</p>}
+          {connected &&
+            listOfAssets.map((a, i) => (
+              <div
+                className="is-flex is-align-items-center my-4 is-clickable"
+                onClick={() => handleClick(a)}
+                key={i}
+              >
+                <Image src={a.iconSrc} alt="coin logo" height={32} width={32} />
+                <p className="subtitle has-text-white ml-4">{a.name}</p>
+              </div>
+            ))}
         </div>
       </div>
     </Modal>
