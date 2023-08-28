@@ -27,6 +27,10 @@ const AssetHashes: Record<string, IAssetHash> = {
     [NetworkNames.TESTNET]:
       'ac3e0ff248c5051ffd61e00155b7122e5ebc04fd397a0ecbdd4f4e4a56232926',
   },
+  LEAF: {
+    [NetworkNames.MAINNET]:
+      '399c110cfb2ae53e91bacedad366522276ce7be4b3a7e5859f274bf9247d1704',
+  },
   USDT: {
     [NetworkNames.MAINNET]:
       'ce091c998b83c78bb71a632313ba3760f1763d9cfcffae02258ffa9865a37bd2',
@@ -54,6 +58,12 @@ const ProtoAssets: Record<string, Omit<Coin, 'assetHash'>> = {
     name: 'Liquid CAD',
     precision: 8,
     ticker: 'LCAD',
+  },
+  LEAF: {
+    iconSrc: '/images/assets/leaf.png',
+    name: 'Leaf Token',
+    precision: 8,
+    ticker: 'LEAF',
   },
   USDT: {
     iconSrc: '/images/assets/usdt.svg',
