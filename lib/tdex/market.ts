@@ -120,12 +120,12 @@ export function getBestMarket(
   const bestMarket = validMarkets.reduce((prev, curr) => {
     const prevSpotPrice = prev.price?.spotPrice ?? 0
     const currSpotPrice = curr.price?.spotPrice ?? 0
-    return getTradeType(curr, pair) === TDEXv2TradeType.SELL
-      ? // when selling base asset we want the lowest spot price
+    return getTradeType(curr, pair) === TDEXv2TradeType.BUY
+      ? // when buying base asset we want the lowest spot price
         prevSpotPrice < currSpotPrice
         ? prev
         : curr
-      : // when buying base asset we want the highest spot price
+      : // when selling base asset we want the highest spot price
       prevSpotPrice > currSpotPrice
       ? prev
       : curr
