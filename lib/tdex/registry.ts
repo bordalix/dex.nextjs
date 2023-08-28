@@ -67,9 +67,12 @@ export async function getProvidersFromRegistry(
   network: NetworkNames = NetworkNames.MAINNET,
 ): Promise<TDEXv2Provider[]> {
   const res = (await axios.get(getRegistryURL(network))).data
+  // throw if invalid response
   if (!Array.isArray(res)) throw TradeStatusMessage.InvalidRegistry
-  return res
-    .filter(isTDEXv2Provider)
-    .map(getClearTextTorProxyUrl)
-    .filter(respondsWithCorrectVersion)
+  // check schema and transform onion addresses to clear web
+  const providers = res.filter(isTDEXv2Provider).map(getClearTextTorProxyUrl)
+  // check if providers respond with version v2
+  const results = await Promise.all(providers.map(respondsWithCorrectVersion))
+  // return only v2 providers
+  return providers.filter((p, i) => results[i])
 }
