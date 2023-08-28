@@ -66,6 +66,7 @@ function getClearTextTorProxyUrl(provider: TDEXv2Provider): TDEXv2Provider {
 export async function getProvidersFromRegistry(
   network: NetworkNames = NetworkNames.MAINNET,
 ): Promise<TDEXv2Provider[]> {
+  console.debug('getProvidersFromRegistry', network)
   const res = (await axios.get(getRegistryURL(network))).data
   // throw if invalid response
   if (!Array.isArray(res)) throw TradeStatusMessage.InvalidRegistry

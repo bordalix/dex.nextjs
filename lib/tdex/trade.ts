@@ -29,6 +29,7 @@ const axiosPost = async (
   endpoint: string,
   payload: TDEXv2ProposeTradeRequest | TDEXv2CompleteTradeRequest,
 ) => {
+  console.debug('axiosPost', endpoint, payload)
   const opt = { headers: { 'Content-Type': 'application/json' } }
   const res = await axios.post(endpoint, payload, opt)
   return res.data
@@ -44,6 +45,8 @@ const makePset = async (
   pair: CoinPair,
   preview: TDEXv2PreviewTradeResponse,
 ): Promise<{ pset: Pset; unblindedInputs: TDEXv2UnblindedInput[] }> => {
+  console.debug('makePset', pair, preview)
+
   // build Pset
   const pset = Creator.newPset()
   const updater = new Updater(pset)
@@ -129,6 +132,8 @@ const createSwapRequest = async (
   pair: CoinPair,
   preview: TDEXv2PreviewTradeResponse,
 ): Promise<TDEXv2TradeRequest> => {
+  console.debug('createSwapRequest', pair, preview)
+
   // validate pair
   if (!pair.from.amount) throw new Error('No pair.from amount')
 
@@ -158,6 +163,7 @@ export const proposeTrade = async (
   market: TDEXv2Market,
   pair: CoinPair,
 ): Promise<TDEXv2ProposeTradeResponse> => {
+  console.debug('proposeTrade', market, pair)
   // validate pair
   const { dest, from } = pair
   if (!dest.amount || !from.amount) throw new Error('Invalid pair')
@@ -197,6 +203,7 @@ export const completeTrade = async (
   market: TDEXv2Market,
   transaction: string,
 ): Promise<TDEXv2CompleteTradeResponse> => {
+  console.log('completeTrade', propose, market, transaction)
   // validate proposal was accepted
   if (!propose.swapAccept) throw new Error('Propose not accepted')
 

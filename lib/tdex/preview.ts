@@ -24,6 +24,7 @@ const fetchTradePreview = async (
   market: TDEXv2Market,
   pair: CoinPair,
 ): Promise<TDEXv2PreviewTradeResponse[]> => {
+  console.debug('fetchTradePreview', amount, coin, market, pair)
   const { dest, from } = pair
   const otherCoin = coin.assetHash === from.assetHash ? dest : from
   const type = getTradeType(market, pair)
@@ -56,10 +57,12 @@ export const tradePreview = async (
   pair: CoinPair,
 ): Promise<TDEXv2PreviewTradeResponse> => {
   try {
+    console.debug('tradePreview', amount, coin, market, pair)
     const previews = await fetchTradePreview(amount, coin, market, pair)
     if (!previews || !previews[0]) throw ''
     return previews[0]
-  } catch {
+  } catch (error) {
+    console.error(error)
     throw TradeStatusMessage.ErrorPreview
   }
 }

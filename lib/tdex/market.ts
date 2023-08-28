@@ -18,6 +18,7 @@ import {
 export async function fetchMarketsFromProvider(
   provider: TDEXv2Provider,
 ): Promise<TDEXv2Market[]> {
+  console.debug('fetchMarketsFromProvider', provider)
   const url = provider.endpoint + '/v2/markets'
   const opt = { headers: { 'Content-Type': 'application/json' } }
   const res = (await axios.post(url, {}, opt)).data.markets
@@ -41,6 +42,7 @@ export async function fetchMarketsFromProvider(
 export async function getMarketPrice(
   market: TDEXv2Market,
 ): Promise<TDEXv2MarketPrice | undefined> {
+  console.debug('getMarketPrice', market)
   const url = market.provider.endpoint + '/v2/market/price'
   const opt = { headers: { 'Content-Type': 'application/json' } }
   const res = (await axios.post(url, { market }, opt)).data
@@ -58,6 +60,7 @@ function totalMarketFees(
   market: TDEXv2Market,
   pair: CoinPair,
 ): number | undefined {
+  console.debug('totalMarketFees', market, pair)
   // return undefined if market has no price
   if (typeof market.fixedFee === 'undefined') return
   if (typeof market.percentageFee === 'undefined') return
@@ -94,6 +97,7 @@ export function getBestMarket(
   pair: CoinPair,
   useProvider?: TDEXv2Provider,
 ): TDEXv2Market | undefined {
+  console.debug('getBestMarket', markets, pair, useProvider)
   const validMarkets = markets
     // return markets filtered by provider if useProvider is defined
     .filter((market) =>
@@ -155,6 +159,7 @@ export function getTradeType(
   market: TDEXv2Market,
   pair: CoinPair,
 ): TDEXv2TradeType {
+  console.debug('getTradeType', market, pair)
   return market.baseAsset === pair.from.assetHash
     ? TDEXv2TradeType.SELL
     : TDEXv2TradeType.BUY
