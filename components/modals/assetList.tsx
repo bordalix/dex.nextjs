@@ -39,6 +39,11 @@ const AssetListModal = ({
 
   return (
     <Modal id={ModalIds.AssetList}>
+      <button
+        className="delete is-danger is-large"
+        aria-label="close"
+        onClick={() => closeModal(ModalIds.AssetList)}
+      />
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select an asset</h1>

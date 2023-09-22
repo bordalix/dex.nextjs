@@ -76,6 +76,11 @@ const ProviderListModal = ({
 
   return (
     <Modal id={ModalIds.ProviderList}>
+      <button
+        className="delete is-danger is-large"
+        aria-label="close"
+        onClick={() => closeModal(ModalIds.ProviderList)}
+      />
       <div className="columns">
         <div className="column is-half is-offset-one-quarter">
           <h1 className="title has-text-white">Select a provider</h1>
