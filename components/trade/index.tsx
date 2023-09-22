@@ -10,7 +10,7 @@ import { TradeContext } from 'providers/trade'
 import AssetListModal from 'components/modals/assetList'
 import { ModalIds } from 'components/modals/modal'
 import { getBestMarket } from 'lib/tdex/market'
-import { defaultDestAsset, defaultFromAsset } from 'lib/defaults'
+import { getDefaultPair } from 'lib/defaults'
 import TradeModal from 'components/modals/trade'
 import { TradeStatus } from 'lib/constants'
 import { signTx } from 'lib/marina'
@@ -18,6 +18,7 @@ import { tradePreview } from 'lib/tdex/preview'
 import { showToast } from 'lib/toast'
 import { completeTrade, proposeTrade } from 'lib/tdex/trade'
 import ProviderListModal from 'components/modals/providerList'
+import { useRouter } from 'next/router'
 
 export default function Trade() {
   const { connected, enoughBalance, network } = useContext(WalletContext)
@@ -32,21 +33,14 @@ export default function Trade() {
   const [tradeStatus, setTradeStatus] = useState(TradeStatus.PROPOSING)
   const [txid, setTxid] = useState<string>()
 
-  // default pair
-  const [pair, setPair] = useState<CoinPair>({
-    dest: defaultDestAsset(network),
-    from: defaultFromAsset(network),
-  })
+  const router = useRouter()
+
+  const [pair, setPair] = useState<CoinPair>(getDefaultPair(router, network))
 
   // update pair on network change
   useEffect(() => {
-    if (network) {
-      const pair = {
-        dest: defaultDestAsset(network),
-        from: defaultFromAsset(network),
-      }
-      setPair(pair)
-    }
+    if (network) setPair(getDefaultPair(router, network))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [network])
 
   // update best market on changes

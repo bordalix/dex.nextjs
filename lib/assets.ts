@@ -121,3 +121,18 @@ export const findAssetByTicker = (
   if (!asset) throw new Error(`unknown ticker ${ticker}`)
   return asset
 }
+
+/**
+ * Find asset by hash
+ * @param assetHash string
+ * @param network network name
+ * @returns coin or undefined
+ */
+export const findAssetByHash = (
+  assetHash: string,
+  network = NetworkNames.TESTNET,
+): Coin => {
+  const asset = supportedAssets(network).find((a) => a.assetHash === assetHash)
+  if (!asset) throw new Error(`unknown asset hash ${assetHash}`)
+  return asset
+}
