@@ -9,6 +9,7 @@ export const enum NetworkNames {
 }
 
 export const enum TradeStatusMessage {
+  AmountTooLarge = 'Amount too large',
   ConnectWallet = 'Connect wallet',
   EnterAmount = 'Enter an amount',
   ErrorCompleting = 'Error completing trade',

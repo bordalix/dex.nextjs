@@ -18,7 +18,7 @@ import { TradeStatusMessage } from 'lib/constants'
  * @param pair CoinPair
  * @returns an array of trade previews
  */
-const fetchTradePreview = async (
+const fetchTradePreviews = async (
   amount: number,
   coin: Coin,
   market: TDEXv2Market,
@@ -58,11 +58,13 @@ export const tradePreview = async (
 ): Promise<TDEXv2PreviewTradeResponse> => {
   try {
     console.debug('tradePreview', amount, coin, market, pair)
-    const previews = await fetchTradePreview(amount, coin, market, pair)
+    const previews = await fetchTradePreviews(amount, coin, market, pair)
     if (!previews || !previews[0]) throw ''
     return previews[0]
-  } catch (error) {
-    console.error(error)
-    throw TradeStatusMessage.ErrorPreview
+  } catch (error: any) {
+    console.error('error', error)
+    throw error.response?.data?.code === 2
+      ? TradeStatusMessage.AmountTooLarge
+      : TradeStatusMessage.ErrorPreview
   }
 }
