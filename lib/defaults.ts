@@ -1,5 +1,5 @@
 import { NextRouter } from 'next/router'
-import { findAssetByHash, findAssetByTicker } from './assets'
+import { AssetTickers, findAssetByHash, findAssetByTicker } from './assets'
 import { NetworkNames } from './constants'
 import { CoinPair } from './types'
 
@@ -11,15 +11,15 @@ export const defaultNetwork = NetworkNames.TESTNET
  * @returns Asset
  */
 const defaultDestAsset = (network: NetworkNames) =>
-  findAssetByTicker('L-BTC', network)
+  findAssetByTicker(AssetTickers.LBTC, network)
 
 /**
- * Default from asset (FUJI)
+ * Default from asset (FUSD)
  * @param network NetworkNames
  * @returns Asset
  */
 const defaultFromAsset = (network: NetworkNames) =>
-  findAssetByTicker('FUJI', network)
+  findAssetByTicker(AssetTickers.FUSD, network)
 
 /**
  * Get default pair
