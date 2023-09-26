@@ -1,7 +1,12 @@
 import { Balance, MarinaProvider, NetworkString } from 'marina-provider'
 import { ReactNode, createContext, useEffect, useState } from 'react'
 import { NetworkNames } from '../lib/constants'
-import { getBalances, getMarinaProvider, getNetwork } from '../lib/marina'
+import {
+  getBalances,
+  getIsEnabled,
+  getMarinaProvider,
+  getNetwork,
+} from '../lib/marina'
 import { Coin } from 'lib/types'
 
 interface WalletContextProps {
@@ -41,28 +46,37 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   )
 
   // async utils
-  const updateNetwork = async () => setNetwork(await getNetwork())
   const updateBalances = async () => setBalances(await getBalances())
-  const updateBalancesNowAndLater = () => {
-    updateBalances()
-    setTimeout(updateBalances, 10_000)
-  }
+  const updateConnected = async () => setConnected(await getIsEnabled())
+  const updateMarina = async () => setMarina(await getMarinaProvider())
+  const updateNetwork = async () => setNetwork(await getNetwork())
+
+  // after emiting the new_ or spent_ utxo events marina
+  // takes a couple of seconds to update the balances.
+  const delayedBalancesUpdate = () => setTimeout(updateBalances, 2_000)
+
+  // prevents weird reload bug
+  setTimeout(() => updateConnected(), 1000)
 
   // get marina provider
-  getMarinaProvider().then((payload) => setMarina(payload))
+  useEffect(() => {
+    updateMarina()
+  }, [])
 
-  // on marina provider check for previous permission and add event listeners
+  // update connected on marina
+  useEffect(() => {
+    if (marina) updateConnected()
+  }, [marina])
+
+  // add listeners for marina events
+  // https://docs.vulpem.com/marina/api#marina-events
   useEffect(() => {
     if (!marina) return
-    // check if user already granted permissions to site to access marina
-    marina.isEnabled().then((enabled) => setConnected(enabled))
-    // add listeners for marina events
-    // https://docs.vulpem.com/marina/api#marina-events
     const onDisabledId = marina.on('DISABLED', () => setConnected(false))
     const onEnabledId = marina.on('ENABLED', () => setConnected(true))
     const onNetworkId = marina.on('NETWORK', ({ data }) => setNetwork(data))
-    const onSpentUtxoId = marina.on('SPENT_UTXO', updateBalancesNowAndLater)
-    const onNewUtxoId = marina.on('NEW_UTXO', updateBalancesNowAndLater)
+    const onSpentUtxoId = marina.on('SPENT_UTXO', delayedBalancesUpdate)
+    const onNewUtxoId = marina.on('NEW_UTXO', delayedBalancesUpdate)
     return () => {
       marina.off(onDisabledId)
       marina.off(onEnabledId)
@@ -76,13 +90,11 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   // update network on connection
   useEffect(() => {
     if (connected) updateNetwork()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected])
 
   // update balances on network change
   useEffect(() => {
-    if (network) updateBalancesNowAndLater()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (network) updateBalances()
   }, [network])
 
   // checks if there's enough balance for an asset
