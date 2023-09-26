@@ -30,7 +30,17 @@ export async function getBalances(): Promise<Balance[]> {
 }
 
 /**
- * Get balance for a given asset
+ * Get enabled (aka connected) info
+ * @returns boolean
+ */
+export async function getIsEnabled(): Promise<boolean> {
+  const marina = await getMarinaProvider()
+  if (!marina) return false
+  return await marina.isEnabled()
+}
+
+/**
+ * Get enabled information
  * @param asset Coin
  * @param balances Balance[]
  * @returns number
