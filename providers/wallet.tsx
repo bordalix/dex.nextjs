@@ -34,17 +34,6 @@ export const WalletProvider = ({ children }: WalletProviderProps) => {
   const [marina, setMarina] = useState<MarinaProvider>()
   const [network, setNetwork] = useState<NetworkString>()
 
-  console.log(
-    'marina',
-    typeof marina,
-    'connect',
-    connected,
-    'network',
-    network,
-    'balances',
-    balances,
-  )
-
   // async utils
   const updateBalances = async () => setBalances(await getBalances())
   const updateConnected = async () => setConnected(await getIsEnabled())
